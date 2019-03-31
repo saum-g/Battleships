@@ -36,14 +36,16 @@
   (define ships-grid (build-grid 10 10 0))
   (define (convert-helper start-no)
     (cond [(= start-no 5) ships-grid]
-          [else (update-grid (cdr (vector-ref ships-vector start-no)))
+          [else (update-grid (cdr (vector-ref ships-vector start-no)) 0)
                 (convert-helper (+ 1 start-no))]))
   (define (update-grid coord-vec start)
     (cond [(= start (vector-length coord-vec)) ]
-          [else (vector-set!(vector-ref ships-grid (cdr (vector-ref coord-vec start))) (car (vector-ref coord-vec start)) 1)]))
+          [(= -1 (cdr (vector-ref coord-vec start))) (update-grid coord-vec (+ start 1))]
+          [else (vector-set!(vector-ref ships-grid (cdr (vector-ref coord-vec start))) (car (vector-ref coord-vec start)) 1)
+                (update-grid coord-vec (+ start 1))]))
   (convert-helper 0))
 
-;makes the grid during the placement mode
+;makes the grid during the placement mode.
 (define (place-grid ships-grid w)
   ;for making individual squares depending on the initial state
   (define (grid-square-place sqr-state)
@@ -64,25 +66,23 @@
   (define w (car (send state get-screen-size)))
   (define h (cdr (send state get-screen-size)))
   (define bckg (rectangle w h 'solid "white"))
-  (define pl1-grid (cond [(= (send state get-player) 1) (place-grid (convert-to-grid (send state get-pl1-ships)) w)]
+  (define pl1-grid (cond [(equal? (send state get-mode) 1) (play-grid (get-field strikes-grid-2 state) 0 w)]
+                         [(= (send state get-player) 1) (place-grid (convert-to-grid (send state get-sv1)) w)]
                          [else (build-grid 10 10 0)]))
-  (define pl2-grid (cond [(= (send state get-player) 2) (place-grid (convert-to-grid (send state get-pl1-ships)) w)]
+  (define pl2-grid (cond [(equal? (send state get-mode) 1) (play-grid (get-field strikes-grid-1 state) 0 w)]
+                         [(= (send state get-player) 2) (place-grid (convert-to-grid (send state get-sv2)) w)]
                          [else (build-grid 10 10 0)]))
   (place-images (list pl1-grid pl2-grid) (list (make-posn (* 0.25 w) (* 0.5 h)) (make-posn (* 0.75 w) (* 0.5 h))) bckg))
 
 
 ;initial state
 (define init-state
-  (new state%
-       [md 'placement]
-       [plyr 1]
-       [pl1 (new player%)]
-       [pl2 (new player%)]))
+  (new state%))
 (define (stop-fn state)
   (pair? (send state get-screen-size)))
 
 (big-bang init-state
-  ;(display-mode 'fullscreen screen-resize)
+  (display-mode 'fullscreen screen-resize)
   (to-draw screen)
   
   (stop-when stop-fn screen)
