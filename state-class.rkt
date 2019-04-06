@@ -25,7 +25,7 @@
     (define/public (change-player)
       (begin (set! count 1) (if (= player 1) (set! player 2) (set! player 1))))
     (define/public (get-mode) mode)
-    (define/public (get player) player)         ;  Saumya is using these two functions in display
+    (define/public (get-player) player)         ;  Saumya is using these two functions in display
     ; when player is changed in placement mode we set count to 0   
     (define ships-vector-1
             (build-vector 5 (lambda (x) (cons (string-append "ship" (~a (+ x 1)))
@@ -78,7 +78,7 @@
     (define/public (full-ship-hit? ship_no player)
       (if (= player 1)
           (if (vector-member 0
-               (vector-map (lambda (x) (grid-ref strikes-grid-1 (- (cdr x) 1) (- (car x) 1)))  ;  always remember we havent changed (car x) according to 1 based indexing
+               (vector-map (lambda (x) (grid-ref strikes-grid-1 (- (cdr x) 1) (- (car x) 1)))
                            (get-ship-coord ship_no 1)))  ; find val on strikes grid for each ship coord
               #f #t)
           (if (vector-member 0
@@ -102,6 +102,7 @@
     
     (define/public (hit? coord player)
       (if (= player 1)
+          (begin
           (let ([search-result (search1 coord)])
             (if (not search-result)
                 (begin (set-grid! strikes-grid-1 (- (cdr coord) 1) (car coord) 1) 1)
@@ -110,26 +111,56 @@
                            (begin (vector-map (lambda (x) (set-grid! strikes-grid-1 (- (cdr x) 1) (car x) 3))
                                               (get-ship-coord (car search-result) 1)) 3)
                            2))))
-     (let ([search-result (search2 coord)])
+          (change-player))
+          
+    (begin (let ([search-result (search2 coord)])
             (if (not search-result)
                 (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 1) 1)
                 (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 2)
                        (if (full-ship-hit? (car search-result) 1)
                            (vector-map (lambda (x) (set-grid! strikes-grid-2 (- (cdr x) 1) (car x) 3))
                                        (get-ship-coord (car search-result) 1))
-                           2))))))
+                           2))))
+           (change-player)))) 
       
      ;  to decide between 2 or 3 we'll have to check if the other coordinates of the ship are 0 or 2 in strikes-grid 
           
     
     ;storing the size of screen, assuming 1000X500 initially, changed during execution
+    (define/public (return-grid-coord x y)
+      (cond [(and (= mode 0) (player 1)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))
+                                                  (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
+                                                  (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
+                                             (cons (+ (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width))) 1)
+                                                   (+ (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))) 1))
+                                             (cons -1 -1))]
+            [(and (= mode 0) (player 2)) (if (and (<= x (* 0.9 screen-width)) (>= x (* 0.6 screen-width))
+                                                  (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
+                                                  (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
+                                             (cons (+ (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width))) 1)
+                                                   (+ (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))) 1))
+                                             (cons -1 -1))]
+            [(and (= mode 1) (player 1)) (if (and (<= x (* 0.9 screen-width)) (>= x (* 0.6 screen-width))
+                                                  (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
+                                                  (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
+                                             (cons (+ (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width))) 1)
+                                                   (+ (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))) 1))
+                                             (cons -1 -1))]
+            [(and (= mode 1) (player 2)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))
+                                                  (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
+                                                  (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
+                                             (cons (+ (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width))) 1)
+                                                   (+ (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))) 1))
+                                             (cons -1 -1))]))
+
+
     
     (define screen-width 1000)
     (define screen-height 500)
     (define/public (set-screen-size! x y)
       (set! screen-width x)
       (set! screen-height y)
-      (cons x y))
+      this)
     (define/public (get-screen-size)
       (cons screen-width screen-height))))
 

@@ -4,8 +4,7 @@
 ;change the screen size variables so that display occupies full screen
 (provide screen-resize)
 (define (screen-resize state x y)
-  (send state set-screen-size! x y)
-  "Resized")
+  (send state set-screen-size! x y))
 
 ;makes the grid for a player during play mode depending on the strikes made by other player, should be called with start-row-no=0
 (define (play-grid oth-pl-strikes start-row-no w)
@@ -68,10 +67,10 @@
   (define bckg (rectangle w h 'solid "white"))
   (define pl1-grid (cond [(equal? (send state get-mode) 1) (play-grid (get-field strikes-grid-2 state) 0 w)]
                          [(= (send state get-player) 1) (place-grid (convert-to-grid (send state get-sv1)) w)]
-                         [else (build-grid 10 10 0)]))
+                         [else (place-grid (build-grid 10 10 0) w)]))
   (define pl2-grid (cond [(equal? (send state get-mode) 1) (play-grid (get-field strikes-grid-1 state) 0 w)]
                          [(= (send state get-player) 2) (place-grid (convert-to-grid (send state get-sv2)) w)]
-                         [else (build-grid 10 10 0)]))
+                         [else (place-grid (build-grid 10 10 0) w)]))
   (place-images (list pl1-grid pl2-grid) (list (make-posn (* 0.25 w) (* 0.5 h)) (make-posn (* 0.75 w) (* 0.5 h))) bckg))
 
 
