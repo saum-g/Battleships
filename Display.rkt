@@ -60,6 +60,19 @@
           [else (beside (grid-square-place (vector-ref ships-row start-no)) (show-row ships-row (+ 1 start-no)))]))
   (show-grid 0))
 
+;initial state
+(define init-state
+  (new state%))
+(define (stop-fn state)
+  (pair? (send state get-screen-size)))
+
+(big-bang init-state
+  (display-mode 'fullscreen screen-resize)
+  (to-draw screen)
+  (on-mouse click-handler)
+  ;(stop-when stop-fn screen)
+  )
+
 ;parameter of to-draw, draws the screen depending on state
 (define (screen state)
   (define w (car (send state get-screen-size)))
@@ -73,16 +86,9 @@
                          [else (place-grid (build-grid 10 10 0) w)]))
   (place-images (list pl1-grid pl2-grid) (list (make-posn (* 0.25 w) (* 0.5 h)) (make-posn (* 0.75 w) (* 0.5 h))) bckg))
 
-
-;initial state
-(define init-state
-  (new state%))
-(define (stop-fn state)
-  (pair? (send state get-screen-size)))
-
-(big-bang init-state
-  (display-mode 'fullscreen screen-resize)
-  (to-draw screen)
-  
-  (stop-when stop-fn screen)
-  )
+(define (click-handler state x y event)
+  (define grid-coord (send state return-grid-coord x y))
+  (cond [(not (mouse=? event "button-down")) ]
+        [(equal? (cons -1 -1) grid-coord) ]
+        [(= (send state get-mode) 0) (send state fill-ships grid-coord)]
+        [else (send state hit grid-coord)]))
