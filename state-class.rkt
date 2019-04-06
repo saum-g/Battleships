@@ -4,6 +4,7 @@
   (build-vector r (lambda (x) (make-vector c v))))
 (define (set-grid! grid r c v)
   (vector-set! (vector-ref grid r) (vector-ref (vector-ref grid r) c) v))
+(provide grid-ref)
 (define (grid-ref grid r c)
   (vector-ref (vector-ref grid r) c))
 (define (size_ship ship_no)
