@@ -32,7 +32,8 @@
         [(= free-blocks-up (- ship-length 1)) (set! no-of-ways (+ no-of-ways free-blocks-down 1))]
         [(>= (+ free-blocks-down free-blocks-up 1) ship-length) (set! no-of-ways (+ no-of-ways (- (+ free-blocks-down free-blocks-up 1) ship-length) 1))])
   no-of-ways)
-  
+
+
     
 
 (define (max-prob prob-grid)
@@ -69,4 +70,114 @@
       (car list-of-moves)
       (parity-narrow list-of-moves prev-move)))
       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;returns #t or #f depending on whether a full ship has been sunk or not. This is actually contents of game-done.rkt
+(define (full-ship-sunk strikes-grid-1 r c k)
+  (cond[(and (= r 9) (= c 9)) (if(= (grid-ref strikes-grid-1 r c) 3) (equal? 17 (+ k 1)) (equal? 17 k))]
+       [(equal? c 9) (if(= (grid-ref strikes-grid-1 r c) 3) (full-ship-sunk strikes-grid-1 (+ r 1) 0 (+ k 1)) (full-ship-sunk strikes-grid-1 (+ r 1) 0 k))]
+       [else (cond[(equal? (grid-ref strikes-grid-1 r c) 3) (full-ship-sunk strikes-grid-1 r (+ c 1) (+ k 1))]
+                  [else (full-ship-sunk strikes-grid-1 r (+ c 1) k)])]))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;;fills ships randomly for player mode-1 (computer mode)
+
+(define (random-ship length)
+  (let ([line (random-line length)])
+    (if (makes-sense? line) line (random-ship length))))
+ 
+(define (random-line length)
+  (define start (cons (random 1 11) (random 1 11)))
+  (define dirn (list-ref '("up" "down" "left" "right") (random 0 4)))
+  (extend-line start dirn length))
+
+(define (extend-line start dirn len)
+  (if (= len 1) (list start)
+      (cond [(eq? dirn "up")
+             (cons start (extend-line (cons (car start) (+ 1 (cdr start))) dirn (- len 1)))]
+            [(eq? dirn "down")
+             (cons start (extend-line (cons (car start) (- (cdr start) 1)) dirn (- len 1)))]
+            [(eq? dirn "right")
+             (cons start (extend-line (cons (+ (car start) 1) (cdr start)) dirn (- len 1)))]
+            [(eq? dirn "left")
+             (cons start (extend-line (cons (- (car start) 1) (cdr start)) dirn (- len 1)))])))
+
+(define (flatten l)
+  (if (null? l) '()
+      (if (list? (car l))
+          (append (flatten (car l)) (flatten (cdr l)))
+          (cons (car l) (flatten (cdr l))))))
+
+(define (makes-sense? line)   ;  makes sure no coordinate is out of the grid
+  (define (inside? coord)
+    (if (and (and (> (car coord) 0) (< (car coord) 11))
+             (and (> (cdr coord) 0) (< (cdr coord) 11)))
+        #t
+        #f))
+  (andmap inside? line))
+
   
+
+
+
+
+
+
+
+
+
+
+
+;;special function that saumya asked to form. returns two lists . First one has coordinates of points having 1/3 and second has coords with 2.
+
+(define (spec-func strikes-grid r c l1 l2)
+  (cond[(and (= r 9) (= c 9)) (cond[(or (= (grid-ref strikes-grid r c) 1) (= (grid-ref strikes-grid r c) 3)) (cons (cons (cons r c) l1) l2)]
+                                   [(= (grid-ref strikes-grid r c) 2) (cons l1 (cons (cons r c) l2))]
+                                   [else (cons l1 l2)])]
+       [(equal? c 9) (cond[(or (= (grid-ref strikes-grid r c) 3) (= (grid-ref strikes-grid r c) 1)) (spec-func strikes-grid (+ r 1) 0 (cons (cons r c) l1) l2)]
+                          [(= (grid-ref strikes-grid r c) 2) (spec-func strikes-grid (+ r 1) 0 l1 (cons (cons r c) l2))]
+                          [else (spec-func strikes-grid (+ r 1) 0 l1 l2)])]
+       [else (cond[(or (= (grid-ref strikes-grid r c) 1) (= (grid-ref strikes-grid r c) 3)) (spec-func strikes-grid r (+ c 1) (cons (cons r c) l1) l2)]
+                  [(= (grid-ref strikes-grid r c) 2) (spec-func strikes-grid r (+ c 1) l1 (cons (cons r c) l2))]
+                  [else (spec-func strikes-grid r (+ c 1) l1 l2)])]))
+

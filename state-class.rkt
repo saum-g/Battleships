@@ -1,5 +1,6 @@
 #lang racket
 (provide build-grid)
+(provide set-grid!)
 (define (build-grid r c v)
   (build-vector r (lambda (x) (make-vector c v))))
 (define (set-grid! grid r c v)
