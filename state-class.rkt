@@ -102,11 +102,11 @@
              [searched (vector-map (lambda (x) (vector-member coord x)) formatted)])
         (lookup (lambda (x) (not (eq? #f x))) searched 0)))
     
-    ;sabse chutiya func    
+    ;sabse chutiya func kitna debug kara hai janta h bc?   
     (define/public (hit coord)
       (if (= player 1)
           (begin
-            (let ([search-result (search1 coord)])
+            (let ([search-result (search2 coord)])
               (if (not search-result)
                   (begin (set-grid! strikes-grid-1 (cdr coord) (car coord) 1))
                   (begin (set-grid! strikes-grid-1 (cdr coord) (car coord) 2)
@@ -116,7 +116,7 @@
                              2))))
             (change-player))
           
-          (begin (let ([search-result (search2 coord)])
+          (begin (let ([search-result (search1 coord)])
                    (if (not search-result)
                        (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 1))
                        (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 2)
