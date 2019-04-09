@@ -4,16 +4,16 @@
 (define (build-grid r c v)
   (build-vector r (lambda (x) (make-vector c v))))
 (define (set-grid! grid r c v)
-  (vector-set! (vector-ref grid r) (vector-ref (vector-ref grid r) c) v))
+  (vector-set! (vector-ref grid (exact-floor r)) (exact-floor c) v))
 (provide grid-ref)
 (define (grid-ref grid r c)
-  (vector-ref (vector-ref grid r) c))
+  (vector-ref (vector-ref grid (exact-floor r)) (exact-floor c)))
 (define (size_ship ship_no)
   (cond [(= ship_no 1) 2]
         [(or (= ship_no 2) (= ship_no 3)) 3]
         [(= ship_no 4) 4]
         [(= ship_no 5) 5]
-        [else "anda"]))
+        [else "anda"]))  ;bhosdike boht marunga change kar ise lodu
 
 (define (to n) (if (= n 0) '() (append (to (- n 1)) (list n))))
 (provide state%)
@@ -22,7 +22,7 @@
     (super-new)
     
     ;  data members (all private)
-    (define mode 0) (define/public (change-mode) (set! mode 1))   ; two values : 0=placement 1=play
+    (define mode 1) (define/public (change-mode) (set! mode 2))   ; two values : 0=placement 1=play
     (define player 1)  ; two values 1 2
     (define/public (change-player)
       (begin (set! count 1) (if (= player 1) (set! player 2) (set! player 1))))
@@ -59,13 +59,13 @@
     (define/public (fill-ships coord)
       (define pair (which-ship? count))
       (cond[(equal? player 1) (begin
-                                (vector-set! (cdr (vector-ref ships-vector-1 (car pair))) (cdr pair) coord)
+                                (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair)))) (exact-floor (cdr pair)) coord)
                                 (set! count (+ 1 count)))]
            [else (begin
-                   (vector-set! (cdr (vector-ref ships-vector-2 (car pair))) (cdr pair) coord)
+                   (vector-set! (cdr (vector-ref ships-vector-2 (exact-floor (car pair)))) (exact-floor (cdr pair)) coord)
                    (set! count (+ 1 count)))])
-      (cond [(= count 17) (cond[(equal? player 1) (begin (set! player 2) (set! count 1))]
-                               [else (set! mode 2)])]))
+      (cond [(= count 18) (cond[(equal? player 1) (begin (set! player 2) (set! count 1))]
+                               [else (set! mode 2) (change-player)])]))
 
     
     ;  we need to change player 1 to 2 when the ships-vector-1 is full.
@@ -80,11 +80,11 @@
     (define/public (full-ship-hit? ship_no player)
       (if (= player 1)
           (if (vector-member 0
-                             (vector-map (lambda (x) (grid-ref strikes-grid-1 (- (cdr x) 1) (- (car x) 1)))
+                             (vector-map (lambda (x) (grid-ref strikes-grid-1 (cdr x) (car x)))
                                          (get-ship-coord ship_no 1)))  ; find val on strikes grid for each ship coord
               #f #t)
           (if (vector-member 0
-                             (vector-map (lambda (x) (grid-ref strikes-grid-2 (- (cdr x) 1) (- (car x) 1)))
+                             (vector-map (lambda (x) (grid-ref strikes-grid-2 (cdr x) (car x)))
                                          (get-ship-coord ship_no 2)))  ; find val on strikes grid for each ship coord
               #f #t)))
           
@@ -99,59 +99,60 @@
         (lookup (lambda (x) (not (eq? #f x))) searched 0)))
     (define/public (search2 coord)
       (let* ([formatted (vector-map (lambda (x) (cdr x)) ships-vector-2)]
-             [searched (map (lambda (x) (vector-member coord x)) formatted)])
+             [searched (vector-map (lambda (x) (vector-member coord x)) formatted)])
         (lookup (lambda (x) (not (eq? #f x))) searched 0)))
     
+    ;sabse chutiya func    
     (define/public (hit coord)
       (if (= player 1)
           (begin
             (let ([search-result (search1 coord)])
               (if (not search-result)
-                  (begin (set-grid! strikes-grid-1 (- (cdr coord) 1) (car coord) 1) 1)
-                  (begin (set-grid! strikes-grid-1 (- (cdr coord) 1) (car coord) 2)
+                  (begin (set-grid! strikes-grid-1 (cdr coord) (car coord) 1))
+                  (begin (set-grid! strikes-grid-1 (cdr coord) (car coord) 2)
                          (if (full-ship-hit? (car search-result) 1)
-                             (begin (vector-map (lambda (x) (set-grid! strikes-grid-1 (- (cdr x) 1) (car x) 3))
+                             (begin (vector-map (lambda (x) (set-grid! strikes-grid-1 (cdr x) (car x) 3))
                                                 (get-ship-coord (car search-result) 1)) 3)
                              2))))
             (change-player))
           
           (begin (let ([search-result (search2 coord)])
                    (if (not search-result)
-                       (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 1) 1)
+                       (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 1))
                        (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 2)
-                              (if (full-ship-hit? (car search-result) 1)
-                                  (vector-map (lambda (x) (set-grid! strikes-grid-2 (- (cdr x) 1) (car x) 3))
-                                              (get-ship-coord (car search-result) 1))
+                              (if (full-ship-hit? (car search-result) 2)
+                                  (vector-map (lambda (x) (set-grid! strikes-grid-2 (cdr x) (car x) 3))
+                                              (get-ship-coord (car search-result) 2))
                                   2))))
-                 (change-player)))) 
+                 (change-player))))
       
     ;  to decide between 2 or 3 we'll have to check if the other coordinates of the ship are 0 or 2 in strikes-grid 
           
 
     (define/public (return-grid-coord x y)
-      (cond [(and (= mode 0) (player 1)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))
+      (cond [(and (= mode 1) (= player 1)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))
                                                   (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
                                                   (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
-                                             (cons (+ (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width))) 1)
-                                                   (+ (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))) 1))
+                                             (cons (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width)))
+                                                   (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
                                              (cons -1 -1))]
-            [(and (= mode 0) (player 2)) (if (and (<= x (* 0.9 screen-width)) (>= x (* 0.6 screen-width))
+            [(and (= mode 1) (= player 2)) (if (and (<= x (* 0.9 screen-width)) (>= x (* 0.6 screen-width))
                                                   (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
                                                   (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
-                                             (cons (+ (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width))) 1)
-                                                   (+ (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))) 1))
+                                             (cons (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width)))
+                                                   (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
                                              (cons -1 -1))]
-            [(and (= mode 1) (player 1)) (if (and (<= x (* 0.9 screen-width)) (>= x (* 0.6 screen-width))
+            [(and (= mode 2) (= player 1)) (if (and (<= x (* 0.9 screen-width)) (>= x (* 0.6 screen-width))
                                                   (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
                                                   (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
-                                             (cons (+ (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width))) 1)
-                                                   (+ (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))) 1))
+                                             (cons (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width)))
+                                                   (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
                                              (cons -1 -1))]
-            [(and (= mode 1) (player 2)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))
+            [(and (= mode 2) (= player 2)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))
                                                   (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
                                                   (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
-                                             (cons (+ (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width))) 1)
-                                                   (+ (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))) 1))
+                                             (cons (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width)))
+                                                   (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
                                              (cons -1 -1))]))
 
 
