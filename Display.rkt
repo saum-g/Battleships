@@ -137,14 +137,22 @@
 ;initial state
 (define init-state
   (new state%))
-(define (stop-fn state)
-  (pair? (send state get-screen-size)))
+
+;returns #t or #f depending on whether all ships have been sunk or not
+(define (all-ships-sunk strikes-grid-1 r c k)
+  (cond[(and (= r 9) (= c 9)) (if(= (grid-ref strikes-grid-1 r c) 3) (equal? 17 (+ k 1)) (equal? 17 k))]
+       [(equal? c 9) (if(= (grid-ref strikes-grid-1 r c) 3) (all-ships-sunk strikes-grid-1 (+ r 1) 0 (+ k 1)) (all-ships-sunk strikes-grid-1 (+ r 1) 0 k))]
+       [else (cond[(equal? (grid-ref strikes-grid-1 r c) 3) (all-ships-sunk strikes-grid-1 r (+ c 1) (+ k 1))]
+                  [else (all-ships-sunk strikes-grid-1 r (+ c 1) k)])]))
+;to determine when to stop the program
+(define (stop-cond state)
+  (or (all-ships-sunk (get-field strikes-grid-1 state) 0 0 0) (all-ships-sunk (get-field strikes-grid-2 state) 0 0 0)))
 
 (big-bang init-state
   (display-mode 'fullscreen screen-resize)
   (to-draw screen)
   (on-mouse click-handler)
-  ;(stop-when stop-fn screen)
+  (stop-when stop-cond screen)
   )
 
 (define sample-grid (build-grid 10 10 0))

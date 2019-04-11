@@ -79,47 +79,6 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-;returns #t or #f depending on whether a full ship has been sunk or not. This is actually contents of game-done.rkt
-(define (full-ship-sunk strikes-grid-1 r c k)
-  (cond[(and (= r 9) (= c 9)) (if(= (grid-ref strikes-grid-1 r c) 3) (equal? 17 (+ k 1)) (equal? 17 k))]
-       [(equal? c 9) (if(= (grid-ref strikes-grid-1 r c) 3) (full-ship-sunk strikes-grid-1 (+ r 1) 0 (+ k 1)) (full-ship-sunk strikes-grid-1 (+ r 1) 0 k))]
-       [else (cond[(equal? (grid-ref strikes-grid-1 r c) 3) (full-ship-sunk strikes-grid-1 r (+ c 1) (+ k 1))]
-                  [else (full-ship-sunk strikes-grid-1 r (+ c 1) k)])]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ;;fills ships randomly for player mode-1 (computer mode)
 
 (define (random-ship length)
