@@ -1,5 +1,8 @@
 #lang racket
-(require "state-class.rkt")
+(define (grid-ref grid r c)
+  (vector-ref (vector-ref grid (exact-floor r)) (exact-floor c)))
+(define (build-grid r c v)
+  (build-vector r (lambda (x) (make-vector c v))))
 (define (set-grid! grid r c v)
   (vector-set! (vector-ref grid r) c v))
 
@@ -138,16 +141,10 @@
             list-of-moves)))
 
 (define (determine-move list-of-moves prev-move)
-  (if (null? (cdr list-of-moves))
-      (car list-of-moves)
-      (parity-narrow list-of-moves prev-move)))
+  (cond [(null? (cdr list-of-moves)) (car list-of-moves)]
+        [(null? (parity-narrow list-of-moves prev-move)) (car list-of-moves)]
+        [else (car (parity-narrow list-of-moves prev-move))]))
       
-
-
-
-
-
-
 
 
 
@@ -186,10 +183,10 @@
         #t
         #f))
   (andmap inside? line))
-
- (define (random-ships)
-   (define l '(2 3 3 4 5))
-   (ships-helper l '()))
+(provide random-ships)
+(define (random-ships)
+  (define l '(2 3 3 4 5))
+  (ships-helper l '()))
 
 (define (ships-helper l c)
   (cond[(null? l) (append* (reverse c))]

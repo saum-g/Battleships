@@ -31,54 +31,6 @@
     (cond [(= start-no 9) (grid-square-place (vector-ref ships-row 9))]
           [else (beside (grid-square-place (vector-ref ships-row start-no)) (show-row ships-row (+ 1 start-no)))]))
   (show-grid 0))
-;(define (grid-square-place sqr-state w)
-;    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) 'solid "lightblue")
-;                                    (square (* 0.03 w) 'outline "white"))]
-;          [(= sqr-state 1) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-;                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-;                                    (square (* 0.03 w) 'solid "lightblue")
-;                                    (square (* 0.03 w) 'outline "white"))]
-;          [(= sqr-state 2) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-;                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-;                                    (square (* 0.03 w) 'solid "red")
-;                                    (square (* 0.03 w) 'outline "white"))]
-;          [(= sqr-state 3) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-;                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-;                                    (square (* 0.03 w) 'solid "brown")
-;                                    (square (* 0.03 w) 'outline "white"))]))
-;(define (show-grid start-no oth-pl-strikes w)
-;    (cond [(= start-no 9) (show-row (vector-ref oth-pl-strikes 9) 0 w)]
-;          [else (above (show-row (vector-ref oth-pl-strikes start-no) 0 w) (show-grid (+ start-no 1) oth-pl-strikes w))]))
-;(define (show-row ships-row start-no w)
-;    (cond [(= start-no 9) (grid-square-place (vector-ref ships-row 9) w)]
-;          [else (beside (grid-square-place (vector-ref ships-row start-no) w) (show-row ships-row (+ 1 start-no) w))]))
-
-;  (define (play-grid-row oth-pl-strk-row start-no)
-;    (cond [(= start-no 9) (grid-square-play (vector-ref oth-pl-strk-row 9))]
-;          [else (beside (grid-square-play (vector-ref oth-pl-strk-row start-no)) (play-grid-row oth-pl-strk-row (+ 1 start-no)))]))
-;  ;for making a particular square during play mode
-;  (define (grid-square-play sqr-state)
-;    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) 'solid "lightblue")
-;                                    (square (* 0.03 w) 'outline "white"))]
-;          [(= sqr-state 1) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-;                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-;                                    (square (* 0.03 w) 'solid "lightblue")
-;                                    (square (* 0.03 w) 'outline "white"))]
-;          [(= sqr-state 2) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-;                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-;                                    (square (* 0.03 w) 'solid "red")
-;                                    (square (* 0.03 w) 'outline "white"))]
-;          [(= sqr-state 3) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-;                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-;                                    (square (* 0.03 w) 'solid "brown")
-;                                    (square (* 0.03 w) 'outline "white"))]))
-;  ;the grid to be displayed
-;  (define (show-grid start-no)
-;    (cond [(= start-no 9) (play-grid-row (vector-ref oth-pl-strikes 9) 0)]
-;          [else (above (play-grid-row (vector-ref oth-pl-strikes start-no) 0) (show-grid (+ start-no 1)))]))
-;  (show-grid 0))
-;  (cond [(= start-row-no 9) (play-grid-row (vector-ref oth-pl-strikes start-row-no) 0)]
-;        [else (above (play-grid-row (vector-ref oth-pl-strikes start-row-no) 0) (play-grid oth-pl-strikes (+ 1 start-row-no) w))]))
 
 ;convert vector to grid
 (define (convert-to-grid ships-vector)

@@ -1,5 +1,5 @@
 #lang racket
-
+(require "best-move.rkt")
 (provide build-grid)
 (provide set-grid!)
 (define (build-grid r c v)
@@ -25,6 +25,7 @@
     ;  data members (all private)
     (define mode 1) (define/public (change-mode) (set! mode 2))   ; two values : 0=placement 1=play
     (define player 1)  ; two values 1 2
+    (define no_of_players 1)
     (define/public (change-player)
       (begin (set! count 1) (if (= player 1) (set! player 2) (set! player 1))))
     (define/public (get-mode) mode)
@@ -55,7 +56,9 @@
             [(and (>= n 6) (<= n 8)) (cons 2 (- (remainder n 9) 6))]
             [(and (>= n 9) (<= n 12)) (cons 3 (- (remainder n 13) 9))]
             [(and (>= n 13) (<= n 17)) (cons 4 (- (remainder n 18) 13))]))
-
+    
+    (define (fill-for-comp)
+      (map (lambda (x) (send this fill-ships x)) (random-ships)))
     
     (define/public (fill-ships coord)
       (define pair (which-ship? count))
@@ -70,7 +73,7 @@
                      (begin
                        (vector-set! (cdr (vector-ref ships-vector-2 (exact-floor (car pair)))) (exact-floor (cdr pair)) coord)
                        (set! count (+ 1 count))))])
-      (cond [(= count 18) (cond[(equal? player 1) (begin (set! player 2) (set! count 1))]
+      (cond [(= count 18) (cond[(equal? player 1) (begin (set! player 2) (set! count 1) (if (= no_of_players 1) (fill-for-comp) (void)))]
                                [else (set! mode 2) (change-player)])]))
 
     
