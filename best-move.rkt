@@ -161,14 +161,14 @@
                                     (cons (cons 9 9) cons-list)]
                                    [else cons-list])]
        [(and (= c 9) (< r 9)) (cond[(> (grid-ref prob-grid r c) max-value)
-                                 (max-helper (cons (cons r c) '()) (grid-ref prob-grid r c) prob-grid (+ r 1) 0)]
+                                 (max-helper (cons (cons c r) '()) (grid-ref prob-grid r c) prob-grid (+ r 1) 0)]
                                    [(= (grid-ref prob-grid r c) max-value)
-                                     (max-helper (cons (cons r c) cons-list) max-value prob-grid (+ r 1) 0)]
+                                     (max-helper (cons (cons c r) cons-list) max-value prob-grid (+ r 1) 0)]
                                  [else (max-helper cons-list max-value prob-grid (+ r 1) 0)])]
        [else  (cond[(> (grid-ref prob-grid r c) max-value)
-                 (max-helper (cons (cons r c) '()) (grid-ref prob-grid r c) prob-grid r (+ c 1))]
+                 (max-helper (cons (cons c r) '()) (grid-ref prob-grid r c) prob-grid r (+ c 1))]
                    [(= (grid-ref prob-grid r c) max-value)
-                 (max-helper (cons (cons r c) cons-list) max-value prob-grid r (+ c 1))]
+                 (max-helper (cons (cons c r) cons-list) max-value prob-grid r (+ c 1))]
                    [else (max-helper cons-list max-value prob-grid r (+ c 1))])]))
 
 (define (parity coord base) (modulo (+ (car coord) (cdr coord)) base))
