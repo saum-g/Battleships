@@ -25,7 +25,9 @@
     ;  data members (all private)
     (define mode 1) (define/public (change-mode) (set! mode 2))   ; two values : 0=placement 1=play
     (define player 1)  ; two values 1 2
-    (define no_of_players 1)
+    (define no-of-players 1)
+    (define last-move (cons -1 -1))
+    
     (define/public (change-player)
       (begin (set! count 1) (if (= player 1) (set! player 2) (set! player 1))))
     (define/public (get-mode) mode)
@@ -58,7 +60,8 @@
             [(and (>= n 13) (<= n 17)) (cons 4 (- (remainder n 18) 13))]))
     
     (define (fill-for-comp)
-      (map (lambda (x) (send this fill-ships x)) (random-ships)))
+      (map (lambda (x) (send this fill-ships x)) (random-ships))
+      (set! mode 2))
     
     (define/public (fill-ships coord)
       (define pair (which-ship? count))
@@ -68,19 +71,26 @@
                                      (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
                                                   (exact-floor (cdr pair)) coord)
                                      (set! count (+ 1 count))))]
-           [else (if (search2 coord)
-                     (void)
-                     (begin
-                       (vector-set! (cdr (vector-ref ships-vector-2 (exact-floor (car pair)))) (exact-floor (cdr pair)) coord)
-                       (set! count (+ 1 count))))])
-      (cond [(= count 18) (cond[(equal? player 1) (begin (set! player 2) (set! count 1) (if (= no_of_players 1) (fill-for-comp) (void)))]
-                               [else (set! mode 2) (change-player)])]))
+           [else               (if (search2 coord)
+                                   (void) 
+                                   (begin
+                                     (vector-set! (cdr (vector-ref ships-vector-2 (exact-floor (car pair))))
+                                                  (exact-floor (cdr pair)) coord)
+                                     (set! count (+ 1 count))))])
+      
+      (cond [(= count 18)
+             (cond [(equal? player 1) (begin
+                                        (change-player) (set! count 1)
+                                        (if (= no-of-players 1)
+                                            (fill-for-comp)
+                                            (void)))]
+                  [else (set! mode 2) (change-player)])]))
 
     
     ;  we need to change player 1 to 2 when the ships-vector-1 is full.
     ;  we need to change mode  1 to 2 when ships-vector-2 is also full.
     
-    (define/public (get-ship-coord ship_no player)    ;change to private later ;;returns the coordinate vector of ship_no of player
+    (define/public (get-ship-coord ship_no player)    ;  change to private later ;  returns the coordinate vector of ship_no of player
       (if (= player 1)
           (cdr (vector-ref ships-vector-1 (- ship_no 1)))
           (cdr (vector-ref ships-vector-2 (- ship_no 1)))))
@@ -108,13 +118,35 @@
     (define/public (search1 coord)
       (let* ([formatted (vector-map (lambda (x) (cdr x)) ships-vector-1)]  
              [searched (vector-map (lambda (x) (vector-member coord x)) formatted)])
-        (lookup (lambda (x) (not (eq? #f x))) searched 0)))   ;  search1 returns 
+        (lookup (lambda (x) (not (eq? #f x))) searched 0)))   ;  search1 searches in ships-vector-1
     (define/public (search2 coord)
       (let* ([formatted (vector-map (lambda (x) (cdr x)) ships-vector-2)]
              [searched (vector-map (lambda (x) (vector-member coord x)) formatted)])
         (lookup (lambda (x) (not (eq? #f x))) searched 0)))
     
-     
+
+    
+    (define (hit-for-comp)
+      (displayln "with the forbidden points: ")
+      (displayln (car (forbidden-and-hit-points strikes-grid-2 0 0 '() '())))
+      (define best-move (determine-move strikes-grid-2 last-move '(2 3 3 4 5)))
+      (displayln best-move)
+      (let ([search-result (search1 best-move)])
+        (if (not search-result)
+            (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 1))  ; set it to 1 if it's a miss
+            (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 2)  ; set it to 2 if it's a strike
+                   (if (full-ship-hit? (car search-result) 2)  ; if full ship is sunk set all its best-move as 3 in strikes grid
+                       (vector-map (lambda (x) (set-grid! strikes-grid-2 (cdr x) (car x) 3))
+                                   (get-ship-coord (car search-result) 1))
+                       (void))))
+        (set! last-move best-move)
+        (displayln (numbers-grid strikes-grid-2 '(2 3 3 4 5)))
+        (newline)
+        (if (= 1 (grid-ref strikes-grid-2 (cdr best-move) (car best-move)))
+            (void)
+            (hit-for-comp))))
+
+
     (define/public (hit coord)
       ;(define ans 0)
       (if (= player 1)
@@ -127,22 +159,36 @@
                                (vector-map (lambda (x) (set-grid! strikes-grid-1 (cdr x) (car x) 3))
                                            (get-ship-coord (car search-result) 2))
                                (void))))
-                (if (= 1 (grid-ref strikes-grid-1 (cdr coord) (car coord))) (change-player) (void))))
-          ; this line of code gives him a second chance if he has sunk part of a ship
-         
-              
-         (if (not (= 0 (grid-ref strikes-grid-2 (cdr coord) (car coord)))) (void)
-             (let ([search-result (search1 coord)])
-               (if (not search-result)
+                (if (= 1 (grid-ref strikes-grid-1 (cdr coord) (car coord)))
+                    (if (= no-of-players 1)
+                        (begin (displayln "giving control to computer")    ; this line transfers control to computer
+                               (hit-for-comp))   ; I am putting rem-lengths as '(2 3 3 4 5) for now
+                        (begin
+                          (displayln "changing player to 2 (in two player mode")   ;  this line is normal control change to player 2 (on click input)
+                          (change-player)))  
+                    (void))))     ; this line of code gives him a second chance if he has sunk part of a ship
+
+          (if (not (= 0 (grid-ref strikes-grid-2 (cdr coord) (car coord)))) (void)
+              (let ([search-result (search1 coord)])
+                (if(not search-result)
                    (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 1))
                    (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 2)
                           (if (full-ship-hit? (car search-result) 2)
                               (vector-map (lambda (x) (set-grid! strikes-grid-2 (cdr x) (car x) 3))
                                           (get-ship-coord (car search-result) 1))
-                              (void))))
-               (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord))) (change-player) (void))))))
-          ;  to decide between 2 or 3 we'll have to check if the other coordinates of the ship are 0 or 2 in strikes-grid 
-          
+                              (void)))) ; common to both
+;                (if (= no-of-players 1)
+;                    (begin (set! last-move coord)
+;                           (display "numbers grid: ")
+;                           (displayln (numbers-grid strikes-grid-2 '(2 3 3 4 5)))
+;                           (newline)
+;                           (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord)))
+;                               (begin (displayln "player changing to 1")
+;                                      (change-player))
+;                               (hit (determine-move strikes-grid-2 last-move '(2 3 3 4 5)))))
+                
+                (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord))) (change-player) (void))))))
+  
 
     (define/public (return-grid-coord x y)
       (cond [(and (= mode 1) (= player 1)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))

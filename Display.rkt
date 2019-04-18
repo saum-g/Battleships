@@ -1,5 +1,5 @@
 #lang racket
-(require "state-class.rkt" 2htdp/universe 2htdp/image lang/posn)
+(require "state-class.rkt" "best-move.rkt" 2htdp/universe 2htdp/image lang/posn)
 
 ;change the screen size variables so that display occupies full screen
 (provide screen-resize)

@@ -1,4 +1,6 @@
 #lang racket
+
+(provide all-defined-out)
 (define (grid-ref grid r c)
   (vector-ref (vector-ref grid (exact-floor r)) (exact-floor c)))
 (define (build-grid r c v)
@@ -18,15 +20,20 @@
 
 ;returns pair of two lists, first one has coordinates of points having 1/3 and second has coords with 2. to be called with 0 0 '() '()
 ;;OPTIMISATION: should be updated after move of computer, not calculated every time
+(provide forbidden-and-hit-points)
+;(define (forbidden-and-hit-points strikes-grid r c forbid-points hit-points)
+;  (let ([unformatted (forbidden-and-hit-points-help strikes-grid r c forbid-points hit-points)])
+;    (cons (map (lambda (x) (cons (+ 0.0 (car x)) (+ 0.0 (cdr x)))) (car unformatted))
+;          (map (lambda (x) (cons (+ 0.0 (car x)) (+ 0.0 (cdr x)))) (cdr unformatted)))))
 (define (forbidden-and-hit-points strikes-grid r c forbid-points hit-points)
-  (cond[(and (= r 9) (= c 9)) (cond[(or (= (grid-ref strikes-grid r c) 1) (= (grid-ref strikes-grid r c) 3)) (cons (cons (cons r c) forbid-points) hit-points)]
-                                   [(= (grid-ref strikes-grid r c) 2) (cons forbid-points (cons (cons r c) hit-points))]
+  (cond[(and (= r 9) (= c 9)) (cond[(or (= (grid-ref strikes-grid r c) 1) (= (grid-ref strikes-grid r c) 3)) (cons (cons (cons c r) forbid-points) hit-points)]
+                                   [(= (grid-ref strikes-grid r c) 2) (cons forbid-points (cons (cons c r) hit-points))]
                                    [else (cons forbid-points hit-points)])]
-       [(equal? c 9) (cond[(or (= (grid-ref strikes-grid r c) 3) (= (grid-ref strikes-grid r c) 1)) (forbidden-and-hit-points strikes-grid (+ r 1) 0 (cons (cons r c) forbid-points) hit-points)]
-                          [(= (grid-ref strikes-grid r c) 2) (forbidden-and-hit-points strikes-grid (+ r 1) 0 forbid-points (cons (cons r c) hit-points))]
+       [(equal? c 9) (cond[(or (= (grid-ref strikes-grid r c) 3) (= (grid-ref strikes-grid r c) 1)) (forbidden-and-hit-points strikes-grid (+ r 1) 0 (cons (cons c r) forbid-points) hit-points)]
+                          [(= (grid-ref strikes-grid r c) 2) (forbidden-and-hit-points strikes-grid (+ r 1) 0 forbid-points (cons (cons c r) hit-points))]
                           [else (forbidden-and-hit-points strikes-grid (+ r 1) 0 forbid-points hit-points)])]
-       [else (cond[(or (= (grid-ref strikes-grid r c) 1) (= (grid-ref strikes-grid r c) 3)) (forbidden-and-hit-points strikes-grid r (+ c 1) (cons (cons r c) forbid-points) hit-points)]
-                  [(= (grid-ref strikes-grid r c) 2) (forbidden-and-hit-points strikes-grid r (+ c 1) forbid-points (cons (cons r c) hit-points))]
+       [else (cond[(or (= (grid-ref strikes-grid r c) 1) (= (grid-ref strikes-grid r c) 3)) (forbidden-and-hit-points strikes-grid r (+ c 1) (cons (cons c r) forbid-points) hit-points)]
+                  [(= (grid-ref strikes-grid r c) 2) (forbidden-and-hit-points strikes-grid r (+ c 1) forbid-points (cons (cons c r) hit-points))]
                   [else (forbidden-and-hit-points strikes-grid r (+ c 1) forbid-points hit-points)])]))
 
 
@@ -54,14 +61,14 @@
         [through-x-left -1]
         [through-y-up -1]
         [no-of-ways 0])
-    (cond [(list? (member (cons y1 x1) forbid-pt-list)) 0];test if the given point itslef is forbidden
+    (cond [(or (member (cons x1 y1) forbid-pt-list) (member (cons x1 y1) through-pt-list)) 0];test if the given point itslef is forbidden
           [(null? through-pt-list) 
            (begin 
              ;determine nearest points in all four directions which are forbidden
-             (map (lambda (coord) (cond [(= (cdr coord) x1) (cond [(and (> (car coord) y1) (< (car coord) forbid-y-down)) (set! forbid-y-down (car coord))]
-                                                                  [(and (< (car coord) y1) (> (car coord) forbid-y-up)) (set! forbid-y-up (car coord))])]
-                                        [(= (car coord) y1) (cond [(and (> (cdr coord) x1) (< (cdr coord) forbid-x-right)) (set! forbid-x-right (cdr coord))]
-                                                                  [(and (< (cdr coord) x1) (> (cdr coord) forbid-x-left)) (set! forbid-x-left (cdr coord))])]))
+             (map (lambda (coord) (cond [(= (car coord) x1) (cond [(and (> (cdr coord) y1) (< (cdr coord) forbid-y-down)) (set! forbid-y-down (cdr coord))]
+                                                                  [(and (< (cdr coord) y1) (> (cdr coord) forbid-y-up)) (set! forbid-y-up (cdr coord))])]
+                                        [(= (cdr coord) y1) (cond [(and (> (car coord) x1) (< (car coord) forbid-x-right)) (set! forbid-x-right (car coord))]
+                                                                  [(and (< (car coord) x1) (> (car coord) forbid-x-left)) (set! forbid-x-left (car coord))])]))
                   forbid-pt-list)
              (set! no-of-ways (+ no-of-ways (calc_ways (- (- forbid-x-right x1) 1) (- (- x1 forbid-x-left) 1) ship-length)))
              (set! no-of-ways (+ no-of-ways (calc_ways (- (- forbid-y-down y1) 1) (- (- y1 forbid-y-up) 1) ship-length)))
@@ -70,18 +77,18 @@
           [else
            (begin
              ;determine nearest points in all four directions which are forbidden
-             (map (lambda (coord) (cond [(= (cdr coord) x1) (cond [(and (> (car coord) y1) (< (car coord) forbid-y-down)) (set! forbid-y-down (car coord))]
-                                                                  [(and (< (car coord) y1) (> (car coord) forbid-y-up)) (set! forbid-y-up (car coord))])]
-                                        [(= (car coord) y1) (cond [(and (> (cdr coord) x1) (< (cdr coord) forbid-x-right)) (set! forbid-x-right (cdr coord))]
-                                                                  [(and (< (cdr coord) x1) (> (cdr coord) forbid-x-left)) (set! forbid-x-left (cdr coord))])]))
+             (map (lambda (coord) (cond [(= (car coord) x1) (cond [(and (> (cdr coord) y1) (< (cdr coord) forbid-y-down)) (set! forbid-y-down (cdr coord))]
+                                                                  [(and (< (cdr coord) y1) (> (cdr coord) forbid-y-up)) (set! forbid-y-up (cdr coord))])]
+                                        [(= (cdr coord) y1) (cond [(and (> (car coord) x1) (< (car coord) forbid-x-right)) (set! forbid-x-right (car coord))]
+                                                                  [(and (< (car coord) x1) (> (car coord) forbid-x-left)) (set! forbid-x-left (car coord))])]))
                   forbid-pt-list)
              ;determine nearest points in all four directions which are compulsory
-             (map (lambda (coord) (cond [(= (cdr coord) x1) (cond [(and (> (car coord) y1) (< (car coord) through-y-down)) (set! through-y-down (car coord))]
-                                                                  [(and (< (car coord) y1) (> (car coord) through-y-up)) (set! through-y-up (car coord))])]
-                                        [(= (car coord) y1) (cond [(and (> (cdr coord) x1) (< (cdr coord) through-x-right)) (set! through-x-right (cdr coord))]
-                                                                  [(and (< (cdr coord) x1) (> (cdr coord) through-x-left)) (set! through-x-left (cdr coord))])]))
+             (map (lambda (coord) (cond [(= (car coord) x1) (cond [(and (> (cdr coord) y1) (< (cdr coord) through-y-down)) (set! through-y-down (cdr coord))]
+                                                                  [(and (< (cdr coord) y1) (> (cdr coord) through-y-up)) (set! through-y-up (cdr coord))])]
+                                        [(= (cdr coord) y1) (cond [(and (> (car coord) x1) (< (car coord) through-x-right)) (set! through-x-right (car coord))]
+                                                                  [(and (< (car coord) x1) (> (car coord) through-x-left)) (set! through-x-left (car coord))])]))
                   through-pt-list)
-             (cond [(and (<= forbid-x-right through-x-right) (>= forbid-x-left through-x-left)) 0]
+             (cond [(and (<= forbid-x-right through-x-right) (>= forbid-x-left through-x-left)) (void)]
                    [(>= forbid-x-left through-x-left) (if (< (- through-x-right x1) ship-length)
                                                           (set! no-of-ways (+ no-of-ways (calc_ways (- (- forbid-x-right through-x-right) 1)
                                                                                                     (- (- x1 forbid-x-left) 1) (- ship-length (- through-x-right x1)))))
@@ -102,14 +109,45 @@
                                     (set! no-of-ways (+ no-of-ways (calc_ways (- (- forbid-x-right through-x-right) 1)
                                                                               (- (- through-x-left forbid-x-left) 1) (- ship-length (- through-x-right through-x-left)))))
                                     (void)))])
+             (cond [(and (<= forbid-y-down through-y-down) (>= forbid-y-up through-y-up)) (void)]
+                   [(>= forbid-y-up through-y-up) (if (< (- through-y-down y1) ship-length)
+                                                          (set! no-of-ways (+ no-of-ways (calc_ways (- (- forbid-y-down through-y-down) 1)
+                                                                                                    (- (- y1 forbid-y-up) 1) (- ship-length (- through-y-down y1)))))
+                                                          (void))]
+                   [(<= forbid-y-down through-y-down) (if (< (- y1 through-y-up) ship-length)
+                                                            (set! no-of-ways (+ no-of-ways (calc_ways (- (- forbid-y-down y1) 1)
+                                                                                                      (- (- through-y-up forbid-y-up) 1) (- ship-length (- y1 through-y-up)))))
+                                                            (void))]
+                   [else (begin (if (< (- y1 through-y-up) ship-length)
+                                    (set! no-of-ways (+ no-of-ways (calc_ways (- (- through-y-down y1) 1)
+                                                                              (- (- through-y-up forbid-y-up) 1) (- ship-length (- y1 through-y-up)))))
+                                    (void))
+                                (if (< (- through-y-down y1) ship-length)
+                                    (set! no-of-ways (+ no-of-ways (calc_ways (- (- forbid-y-down through-y-down) 1)
+                                                                              (- (- y1 through-y-up) 1) (- ship-length (- through-y-down y1)))))
+                                    (void))
+                                (if (< (- through-y-down through-y-up) ship-length)
+                                    (set! no-of-ways (+ no-of-ways (calc_ways (- (- forbid-y-down through-y-down) 1)
+                                                                              (- (- through-y-up forbid-y-up) 1) (- ship-length (- through-y-down through-y-up)))))
+                                    (void)))])
              no-of-ways)])))
+
+(provide numbers-grid)
 (define (numbers-grid strikes-grid rem-lengths)
   (define grid (build-grid 10 10 0))
   (define pair (forbidden-and-hit-points strikes-grid 0 0 '() '()))
-  (lc (set-grid! grid r c (ways-for-sqr c r (car pair) (cdr pair) length)) : r <- (list 0 1 2 3 4 5 6 7 8 9) c <- (list 0 1 2 3 4 5 6 7 8 9) length <- rem-lengths)
+  (lc (set-grid! grid r c (ways-for-sqr c r (car pair) (cdr pair) length)) :
+      r <- (list 0 1 2 3 4 5 6 7 8 9) c <- (list 0 1 2 3 4 5 6 7 8 9) length <- rem-lengths)
   grid)
 
-    
+
+(define (min-of-list l)
+  (min-help l (car l)))
+(define (min-help l acc)
+  (if (null? l) acc
+      (if (< (car l) acc)
+          (min-help (cdr l) (car l))
+          (min-help (cdr l) acc))))
 
 (define (max-prob prob-grid)
   (define x '())
@@ -133,26 +171,34 @@
                  (max-helper (cons (cons r c) cons-list) max-value prob-grid r (+ c 1))]
                    [else (max-helper cons-list max-value prob-grid r (+ c 1))])]))
 
-(define (parity coord) (modulo (+ (car coord) (cdr coord)) 2))
+(define (parity coord base) (modulo (+ (car coord) (cdr coord)) base))
 
-(define (parity-narrow list-of-moves prev-move)
-  (let ([prev (parity prev-move)])
-    (filter (lambda (x) (= (parity x) prev))
+(define (parity-narrow list-of-moves prev-move length)
+  (let ([prev (parity prev-move length)])
+    (filter (lambda (x) (= (parity x length) prev))
             list-of-moves)))
 
-(define (determine-move list-of-moves prev-move)
+(provide determine-move)
+(define (determine-move strikes-grid prev-move rem-lengths)
+  (let ([coord (determine-help strikes-grid prev-move rem-lengths)])
+    (cons (+ 0.0 (car coord)) (+ 0.0 (cdr coord)))))
+(define (determine-help strikes-grid prev-move rem-lengths)
+  (define prob-grid (numbers-grid strikes-grid rem-lengths))
+  (define list-of-moves (max-prob prob-grid))
   (cond [(null? (cdr list-of-moves)) (car list-of-moves)]
-        [(null? (parity-narrow list-of-moves prev-move)) (car list-of-moves)]
-        [else (car (parity-narrow list-of-moves prev-move))]))
+        [(null? (parity-narrow list-of-moves prev-move (min-of-list rem-lengths))) (car list-of-moves)]
+        [else (car (parity-narrow list-of-moves prev-move (min-of-list rem-lengths)))]))
       
 
 
 
-;;fills ships randomly for player mode-1 (computer mode)
+; generates a random list of 17 coordinates which make sense as ships 1 player mode (computer mode)
 
 (define (random-ship length)
+  (map (lambda (x) (cons (+ 0.0 (car x)) (+ 0.0 (cdr x)))) (random-ship-help length)))
+(define (random-ship-help length)
   (let ([line (random-line length)])
-    (if (makes-sense? line) line (random-ship length))))
+    (if (makes-sense? line) line (random-ship-help length))))
  
 (define (random-line length)
   (define start (cons (random 0 10) (random 0 10)))
@@ -191,14 +237,12 @@
 (define (ships-helper l c)
   (cond[(null? l) (append* (reverse c))]
        [else (let ([res (random-ship (car l))])
-               (begin (displayln res)
                (cond[(satisfy? res c) (ships-helper (cdr l) (cons res c))]
-                    [else (ships-helper l c)])))]))
+                    [else (ships-helper l c)]))]))
 
 (define (satisfy? res c)
   (let* ([res-list  (lc (member x y) : x <- res y <- c )]  ;(map (lambda (x) (member res x)) c)]
          [all (filter (lambda (x) (not (equal? x #f))) res-list)])
-    (displayln res-list)
     (cond[(= (length all) 0) #t]
          [else #f])))
     
