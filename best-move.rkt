@@ -136,7 +136,7 @@
 (define (numbers-grid strikes-grid rem-lengths)
   (define grid (build-grid 10 10 0))
   (define pair (forbidden-and-hit-points strikes-grid 0 0 '() '()))
-  (lc (set-grid! grid r c (+ (grid-ref r c) (ways-for-sqr c r (car pair) (cdr pair) length))) :
+  (lc (set-grid! grid r c (+ (grid-ref grid r c) (ways-for-sqr c r (car pair) (cdr pair) length))) :
       r <- (list 0 1 2 3 4 5 6 7 8 9) c <- (list 0 1 2 3 4 5 6 7 8 9) length <- rem-lengths)
   grid)
 
