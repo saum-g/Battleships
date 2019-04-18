@@ -1,6 +1,15 @@
 #lang racket
 (require "state-class.rkt" "best-move.rkt" 2htdp/universe 2htdp/image lang/posn)
 
+(define-syntax lc
+  (syntax-rules (: <- @)
+    [(lc expr : var <- drawn-from) (map (lambda (var) expr) drawn-from)]
+    [(lc expr : @ guard) (if guard (list expr) `())]
+    [(lc expr : @ guard  qualifier ...) 
+     (append* (lc (lc expr : qualifier ...) : @ guard))]
+    [(lc expr : var <- drawn-from  qualifier ...) 
+     (append* (lc (lc expr :  qualifier ... ) : var <- drawn-from))]))
+
 ;change the screen size variables so that display occupies full screen
 (provide screen-resize)
 (define (screen-resize state x y)

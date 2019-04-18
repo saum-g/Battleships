@@ -9,12 +9,24 @@
 (provide grid-ref)
 (define (grid-ref grid r c)
   (vector-ref (vector-ref grid (exact-floor r)) (exact-floor c)))
-(define (size_ship ship_no)
-  (cond [(= ship_no 1) 2]
-        [(or (= ship_no 2) (= ship_no 3)) 3]
-        [(= ship_no 4) 4]
-        [(= ship_no 5) 5]
-        [else "anda"])) 
+(define-syntax lc
+  (syntax-rules (: <- @)
+    [(lc expr : var <- drawn-from) (map (lambda (var) expr) drawn-from)]
+    [(lc expr : @ guard) (if guard (list expr) `())]
+    [(lc expr : @ guard  qualifier ...) 
+     (append* (lc (lc expr : qualifier ...) : @ guard))]
+    [(lc expr : var <- drawn-from  qualifier ...) 
+     (append* (lc (lc expr :  qualifier ... ) : var <- drawn-from))]))
+
+
+(define (ship-length? ship-no)
+      (cond [(= ship-no 1) 2]
+            [(= ship-no 2) 3]
+            [(= ship-no 3) 3]
+            [(= ship-no 4) 4]
+            [(= ship-no 5) 5]
+            [else "anda-danda-funda"]))
+
 
 (define (to n) (if (= n 0) '() (append (to (- n 1)) (list n))))
 (provide state%)
@@ -35,11 +47,11 @@
     ; when player is changed in placement mode we set count to 0   
     (define ships-vector-1
       (build-vector 5 (lambda (x) (cons (string-append "ship" (~a (+ x 1)))
-                                        (make-vector (size_ship (+ x 1)) (cons -1 -1))))))
+                                        (make-vector (ship-length? (+ x 1)) (cons -1 -1))))))
     ;  to be changed in display.rkt : initialisation is not null
     (define ships-vector-2
       (build-vector 5 (lambda (x) (cons (string-append "ship" (~a (+ x 1)))
-                                        (make-vector (size_ship (+ x 1)) (cons -1 -1))))))
+                                        (make-vector (ship-length? (+ x 1)) (cons -1 -1))))))
 
     (define/public (get-sv1)
       ships-vector-1)
@@ -59,6 +71,9 @@
             [(and (>= n 9) (<= n 12)) (cons 3 (- (remainder n 13) 9))]
             [(and (>= n 13) (<= n 17)) (cons 4 (- (remainder n 18) 13))]))
     
+
+
+
     (define (fill-for-comp)
       (map (lambda (x) (send this fill-ships x)) (random-ships))
       (set! mode 2))
@@ -90,22 +105,22 @@
     ;  we need to change player 1 to 2 when the ships-vector-1 is full.
     ;  we need to change mode  1 to 2 when ships-vector-2 is also full.
     
-    (define/public (get-ship-coord ship_no player)    ;  change to private later ;  returns the coordinate vector of ship_no of player
+    (define/public (get-ship-coord ship-no player)    ;  change to private later ;  returns the coordinate vector of ship-no of player
       (if (= player 1)
-          (cdr (vector-ref ships-vector-1 (- ship_no 1)))
-          (cdr (vector-ref ships-vector-2 (- ship_no 1)))))
+          (cdr (vector-ref ships-vector-1 (- ship-no 1)))
+          (cdr (vector-ref ships-vector-2 (- ship-no 1)))))
 
     
-    (define/public (full-ship-hit? ship_no player)  
+    (define/public (full-ship-hit? ship-no player)  
       (if (= player 1)   ;  checks in player 1's strikes grid (where all he has hit so far (on player 2's "ship grid"))
-                         ;  whether coordinates of player 2's ship with given ship_no
+                         ;  whether coordinates of player 2's ship with given ship-no are all hit (value 2).
           (if (vector-member 0
                              (vector-map (lambda (x) (grid-ref strikes-grid-1 (cdr x) (car x)))  
-                                         (get-ship-coord ship_no 2)))  ; find val on strikes grid for each ship coord
+                                         (get-ship-coord ship-no 2)))  ; find val on strikes grid for each ship coord
               #f #t)
           (if (vector-member 0
                              (vector-map (lambda (x) (grid-ref strikes-grid-2 (cdr x) (car x)))
-                                         (get-ship-coord ship_no 1)))  ; find val on strikes grid for each ship coord
+                                         (get-ship-coord ship-no 1)))  ; find val on strikes grid for each ship coord
               #f #t)))
           
     (define (lookup p? v i)
@@ -113,7 +128,7 @@
           (if (p? (vector-ref v i)) (cons (+ 1 i) (+ 1 (vector-ref v i)))  
               (lookup p? v (+ i 1)))))
 
- ;  search returns (ship_no . position) if found. Else #f
+ ;  search returns (ship-no . position) if found. Else #f
 
     (define/public (search1 coord)
       (let* ([formatted (vector-map (lambda (x) (cdr x)) ships-vector-1)]  
@@ -127,9 +142,13 @@
 
     
     (define (hit-for-comp)
+      (define rem-length  (map (lambda (x) (ship-length? x))
+                               (lc x : x <- (to 5) @(not (full-ship-hit? x 2)))))
+      
+      (displayln rem-length)
       (displayln "with the forbidden points: ")
       (displayln (car (forbidden-and-hit-points strikes-grid-2 0 0 '() '())))
-      (define best-move (determine-move strikes-grid-2 last-move '(2 3 3 4 5)))
+      (define best-move (determine-move strikes-grid-2 last-move rem-length))                                                                         
       (displayln best-move)
       (let ([search-result (search1 best-move)])
         (if (not search-result)
@@ -140,7 +159,7 @@
                                    (get-ship-coord (car search-result) 1))
                        (void))))
         (set! last-move best-move)
-        (displayln (numbers-grid strikes-grid-2 '(2 3 3 4 5)))
+        (displayln (numbers-grid strikes-grid-2 rem-length))
         (newline)
         (if (= 1 (grid-ref strikes-grid-2 (cdr best-move) (car best-move)))
             (void)
@@ -162,7 +181,7 @@
                 (if (= 1 (grid-ref strikes-grid-1 (cdr coord) (car coord)))
                     (if (= no-of-players 1)
                         (begin (displayln "giving control to computer")    ; this line transfers control to computer
-                               (hit-for-comp))   ; I am putting rem-lengths as '(2 3 3 4 5) for now
+                               (hit-for-comp))  
                         (begin
                           (displayln "changing player to 2 (in two player mode")   ;  this line is normal control change to player 2 (on click input)
                           (change-player)))  
