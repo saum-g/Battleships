@@ -144,7 +144,7 @@
     (define (hit-for-comp)
       (define rem-length  (map (lambda (x) (ship-length? x))
                                (lc x : x <- (to 5) @(not (full-ship-hit? x 2)))))
-      
+      (cond [(null? rem-length) (void)]) 
       (displayln rem-length)
       (displayln "with the forbidden points: ")
       (displayln (car (forbidden-and-hit-points strikes-grid-2 0 0 '() '())))

@@ -84,7 +84,12 @@
   (define pl2-grid (cond [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-1 state) w)]
                          [(= (send state get-player) 2) (place-grid (convert-to-grid (send state get-sv2)) w)]
                          [else (place-grid (build-grid 10 10 0) w)]))
-  (place-images (list pl1-grid pl2-grid) (list (make-posn (* 0.25 w) (* 0.5 h)) (make-posn (* 0.75 w) (* 0.5 h))) bckg))
+  (define pl1-show (text "Player 1:" (- (* 0.125 h) (* 0.0375 w)) "Black"))
+  (define pl2-show (text "Player 2:" (- (* 0.125 h) (* 0.0375 w)) "Black"))
+  (place-images (list pl1-show pl2-show pl1-grid pl2-grid)
+                (list (make-posn (* 0.25 w) (- (* 0.375 h) (* 0.1125 w))) (make-posn (* 0.75 w) (- (* 0.375 h) (* 0.1125 w)))
+                      (make-posn (* 0.25 w) (* 0.5 h)) (make-posn (* 0.75 w) (* 0.5 h)))
+                bckg))
 
 (define (click-handler state x y event)
   ;(displayln state)
