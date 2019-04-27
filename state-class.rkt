@@ -1,5 +1,6 @@
 #lang racket
 (require "best-move.rkt")
+(require 2htdp/batch-io)
 (provide build-grid)
 (provide set-grid!)
 (define (build-grid r c v)
@@ -154,6 +155,20 @@
                     (if (not search-result)
                         (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 1))  ; set it to 1 if it's a miss
                         (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 2)  ; set it to 2 if it's a strike
+                               ;if learning is to used
+                               (cond [(equal? no-of-players '1learn)
+                                      (let* ([mcontent (list->vector (read-csv-file "Posn-frequency.csv"))]
+                                             [newstr ""])
+                                        (begin ;to add 1 at the right place in mcontent
+                                          (vector-set! mcontent (cdr best-move)
+                                                       (foldr (lambda (x y) (if (= (length y) (- 9 (car best-move)))
+                                                                                (~a (+ 1 (string->number x))) x))
+                                                              '() (vector-ref mcontent (cdr best-move))))
+                                          ;convert to a list of strings
+                                          (set! newstr (foldr (lambda (x y) (cons (string-join x ",") y)) '() (vector->list mcontent)))
+                                          ;convert to a single string
+                                          (set! newstr (string-join newstr "\n"))
+                                          (write-file "Posn-frequency.csv" newstr)))])
                                (if (full-ship-hit? (car search-result) 2)  ; if full ship is sunk set all its best-move as 3 in strikes grid
                                    (vector-map (lambda (x) (set-grid! strikes-grid-2 (cdr x) (car x) 3))
                                                (get-ship-coord (car search-result) 1))
