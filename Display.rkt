@@ -16,22 +16,22 @@
   (send state set-screen-size! x y))
 
 ;makes the grid for a player during play mode depending on the strikes made by other player, should be called with start-row-no=0
-(define (play-grid oth-pl-strikes w)
+(define (play-grid oth-pl-strikes w turn?)
   ;to make a row for a the grid
   (define (grid-square-place sqr-state)
-    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) 'solid "lightblue")
+    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
                                     (square (* 0.03 w) 'outline "white"))]
           [(= sqr-state 1) (overlay (line (* 0.03 w) (* 0.03 w) "black")
                                     (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-                                    (square (* 0.03 w) 'solid "lightblue")
+                                    (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
                                     (square (* 0.03 w) 'outline "white"))]
           [(= sqr-state 2) (overlay (line (* 0.03 w) (* 0.03 w) "black")
                                     (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-                                    (square (* 0.03 w) 'solid "red")
+                                    (square (* 0.03 w) (* (+ turn? 1) 127) "red")
                                     (square (* 0.03 w) 'outline "white"))]
           [(= sqr-state 3) (overlay (line (* 0.03 w) (* 0.03 w) "black")
                                     (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-                                    (square (* 0.03 w) 'solid "brown")
+                                    (square (* 0.03 w) (* (+ turn? 1) 127) "brown")
                                     (square (* 0.03 w) 'outline "white"))]))
   (define (show-grid start-no)
     (cond [(= start-no 9) (show-row (vector-ref oth-pl-strikes 9) 0)]
@@ -57,12 +57,12 @@
   (convert-helper 0))
 
 ;makes the grid during the placement mode.
-(define (place-grid ships-grid w)
+(define (place-grid ships-grid w turn?)
   ;for making individual squares depending on the initial state
   (define (grid-square-place sqr-state)
-    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) 'solid "lightblue")
+    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
                                     (square (* 0.03 w) 'outline "white"))]
-          [(= sqr-state 1) (overlay (square (* 0.03 w) 'solid "red")
+          [(= sqr-state 1) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "red")
                                     (square (* 0.03 w) 'outline "white"))]))
   (define (show-grid start-no)
     (cond [(= start-no 9) (show-row (vector-ref ships-grid 9) 0)]
@@ -78,12 +78,16 @@
   (define w (car (send state get-screen-size)))
   (define h (cdr (send state get-screen-size)))
   (define bckg (rectangle w h 'solid "white"))
-  (define pl1-grid (cond [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-2 state) w)]
-                         [(= (send state get-player) 1) (place-grid (convert-to-grid (send state get-sv1)) w)]
-                         [else (place-grid (build-grid 10 10 0) w)]))
-  (define pl2-grid (cond [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-1 state) w)]
-                         [(= (send state get-player) 2) (place-grid (convert-to-grid (send state get-sv2)) w)]
-                         [else (place-grid (build-grid 10 10 0) w)]))
+  (define pl1-grid (cond [(and (= (send state get-player) 1) (equal? (send state get-mode) 2))
+                          (play-grid (get-field strikes-grid-2 state) w 0)]
+                         [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-2 state) w 1)]
+                         [(= (send state get-player) 1) (place-grid (convert-to-grid (send state get-sv1)) w 1)]
+                         [else (place-grid (build-grid 10 10 0) w 0)]))
+  (define pl2-grid (cond [(and (= (send state get-player) 2) (equal? (send state get-mode) 2))
+                          (play-grid (get-field strikes-grid-2 state) w 0)]
+                         [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-1 state) w 1)]
+                         [(= (send state get-player) 2) (place-grid (convert-to-grid (send state get-sv2)) w 1)]
+                         [else (place-grid (build-grid 10 10 0) w 0)]))
   (define pl1-show (text "Player 1:" (- (* 0.125 h) (* 0.0375 w)) "Black"))
   (define pl2-show (text "Player 2:" (- (* 0.125 h) (* 0.0375 w)) "Black"))
   (place-images (list pl1-show pl2-show pl1-grid pl2-grid)
@@ -117,9 +121,9 @@
   (define w (car (send state get-screen-size)))
   (define h (cdr (send state get-screen-size)))
   (define bckg (rectangle w h 'solid "white"))
-  (cond (all-ships-sunk (get-field strikes-grid-1 state) 0 0 0)
-        (place-images (list (text "Player1 Wins!!" (* 0.01 w) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)
-        (place-images (list (text "Player2 Wins!!" (* 0.01 w) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)))
+  (if (all-ships-sunk (get-field strikes-grid-1 state) 0 0 0)
+      (place-images (list (text "Player1 Wins!!" (* 0.01 w) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)
+      (place-images (list (text "Player2 Wins!!" (* 0.01 w) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)))
 
 (big-bang init-state
   (display-mode 'fullscreen screen-resize)
