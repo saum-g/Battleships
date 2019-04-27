@@ -113,12 +113,19 @@
 ;to determine when to stop the program
 (define (stop-cond state)
   (or (all-ships-sunk (get-field strikes-grid-1 state) 0 0 0) (all-ships-sunk (get-field strikes-grid-2 state) 0 0 0)))
+(define (end-screen state)
+  (define w (car (send state get-screen-size)))
+  (define h (cdr (send state get-screen-size)))
+  (define bckg (rectangle w h 'solid "white"))
+  (cond (all-ships-sunk (get-field strikes-grid-1 state) 0 0 0)
+        (place-images (list (text "Player1 Wins!!" (* 0.01 w) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)
+        (place-images (list (text "Player2 Wins!!" (* 0.01 w) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)))
 
 (big-bang init-state
   (display-mode 'fullscreen screen-resize)
   (to-draw screen)
   (on-mouse click-handler)
-  (stop-when stop-cond screen)
+  (stop-when stop-cond end-screen)
   )
 
 (define sample-grid (build-grid 10 10 0))
