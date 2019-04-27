@@ -1,5 +1,5 @@
 #lang racket
-
+(require 2htdp/batch-io)
 (provide all-defined-out)
 (define (grid-ref grid r c)
   (vector-ref (vector-ref grid (exact-floor r)) (exact-floor c)))
@@ -180,8 +180,17 @@
 
 (provide determine-move)
 (define (determine-move strikes-grid prev-move rem-lengths)
-  (let ([coord (determine-help strikes-grid prev-move rem-lengths)])
-    (cons (+ 0.0 (car coord)) (+ 0.0 (cdr coord)))))
+  (cond[(equal? learn 'on) (let*([ML-string-grid (list->vector (map list->vector (read-csv-file "Posn-frequency.csv")))]
+                                 [ML-grid (vector-map (lambda (y) (vector-map string->number y)) ML-string-grid)]
+                                 [merged-grid (merge strikes-grid ML-grid)]
+                                 [coord (determine-help merged-grid prev-move rem-lengths)])
+                             (cons (+ 0.0 (car coord)) (+ 0.0 (cdr coord))))]
+       [else (let ([coord (determine-help strikes-grid prev-move rem-lengths)])
+               (cons (+ 0.0 (car coord)) (+ 0.0 (cdr coord))))]))
+
+(define (merge strikes-grid ML-grid)
+  '())
+
 (define (determine-help strikes-grid prev-move rem-lengths)
   (define prob-grid (numbers-grid strikes-grid rem-lengths))
   (define list-of-moves (max-prob prob-grid))
