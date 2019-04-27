@@ -39,6 +39,7 @@
     (define mode 1) (define/public (change-mode) (set! mode 2))   ; two values : 0=placement 1=play
     (define player 1)  ; two values 1 2
     (define no-of-players 1)
+    (define learn 'on)
     (define last-move (cons -1 -1))
     
     (define/public (change-player)
@@ -156,14 +157,15 @@
                         (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 1))  ; set it to 1 if it's a miss
                         (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 2)  ; set it to 2 if it's a strike
                                ;if learning is to used
-                               (cond [(equal? no-of-players '1learn)
+                               (cond [(equal? learn 'on)
                                       (let* ([mcontent (list->vector (read-csv-file "Posn-frequency.csv"))]
                                              [newstr ""])
                                         (begin ;to add 1 at the right place in mcontent
-                                          (vector-set! mcontent (cdr best-move)
+                                          (vector-set! mcontent (exact-floor (cdr best-move))
                                                        (foldr (lambda (x y) (if (= (length y) (- 9 (car best-move)))
-                                                                                (~a (+ 1 (string->number x))) x))
-                                                              '() (vector-ref mcontent (cdr best-move))))
+                                                                                (cons (~a (+ 1 (string->number x))) y)
+                                                                                (cons x y)))
+                                                              '() (vector-ref mcontent (exact-floor (cdr best-move)))))
                                           ;convert to a list of strings
                                           (set! newstr (foldr (lambda (x y) (cons (string-join x ",") y)) '() (vector->list mcontent)))
                                           ;convert to a single string
