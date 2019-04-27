@@ -144,26 +144,26 @@
     (define (hit-for-comp)
       (define rem-length  (map (lambda (x) (ship-length? x))
                                (lc x : x <- (to 5) @(not (full-ship-hit? x 2)))))
-      (cond [(null? rem-length) (void)]) 
-      (displayln rem-length)
-      (displayln "with the forbidden points: ")
-      (displayln (car (forbidden-and-hit-points strikes-grid-2 0 0 '() '())))
-      (define best-move (determine-move strikes-grid-2 last-move rem-length))                                                                         
-      (displayln best-move)
-      (let ([search-result (search1 best-move)])
-        (if (not search-result)
-            (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 1))  ; set it to 1 if it's a miss
-            (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 2)  ; set it to 2 if it's a strike
-                   (if (full-ship-hit? (car search-result) 2)  ; if full ship is sunk set all its best-move as 3 in strikes grid
-                       (vector-map (lambda (x) (set-grid! strikes-grid-2 (cdr x) (car x) 3))
-                                   (get-ship-coord (car search-result) 1))
-                       (void))))
-        (set! last-move best-move)
-        (displayln (numbers-grid strikes-grid-2 rem-length))
-        (newline)
-        (if (= 1 (grid-ref strikes-grid-2 (cdr best-move) (car best-move)))
-            (void)
-            (hit-for-comp))))
+      (cond [(null? rem-length) (void)]
+            [else (displayln rem-length)
+                  (displayln "with the forbidden points: ")
+                  (displayln (car (forbidden-and-hit-points strikes-grid-2 0 0 '() '())))
+                  (define best-move (determine-move strikes-grid-2 last-move rem-length))                                                                         
+                  (displayln best-move)
+                  (let ([search-result (search1 best-move)])
+                    (if (not search-result)
+                        (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 1))  ; set it to 1 if it's a miss
+                        (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 2)  ; set it to 2 if it's a strike
+                               (if (full-ship-hit? (car search-result) 2)  ; if full ship is sunk set all its best-move as 3 in strikes grid
+                                   (vector-map (lambda (x) (set-grid! strikes-grid-2 (cdr x) (car x) 3))
+                                               (get-ship-coord (car search-result) 1))
+                                   (void))))
+                    (set! last-move best-move)
+                    (displayln (numbers-grid strikes-grid-2 rem-length))
+                    (newline)
+                    (if (= 1 (grid-ref strikes-grid-2 (cdr best-move) (car best-move)))
+                        (void)
+                        (hit-for-comp)))]))
 
 
     (define/public (hit coord)
