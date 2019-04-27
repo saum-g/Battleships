@@ -79,21 +79,63 @@
     (define (fill-for-comp)
       (map (lambda (x) (send this fill-ships x)) (random-ships))
       (set! mode 2))
+
+     (define direction "undefined")
     
-    (define/public (fill-ships coord)
+     (define (diag-checker coord)
+      (cond[(or (= count 1) (= count 3) (= count 6) (= count 9) (= count 13)) #t]
+           [(or (= count 2) (= count 4) (= count 7) (= count 10) (= count 14))
+            (let([res (direction-finder coord)])
+              (displayln res)
+              (cond[(eq? res "undefined") #f]
+                   [else (begin (set! direction (direction-finder coord)) #t)]))]
+           [else (eq? direction (direction-finder coord))]))
+    
+    (define (direction-finder coord)
+      (cond [(= player 1) (let* ([pair (which-ship? (- count 1))]
+                                 [vec (get-ship-coord (+ 1 (car pair)) player)]
+                                 [ref-coord (vector-ref (cdr (vector-ref ships-vector-1 (car pair))) (cdr pair) )]
+                                 [xr (car ref-coord)]
+                                 [yr (cdr ref-coord)]
+                                 [x (car coord)]
+                                 [y (cdr coord)])
+                            (displayln pair)
+                            (cond [(and (= (- x xr) 1) (= y yr)) "right"]
+                                  [(and (= (- xr x) 1) (= y yr)) "left"]
+                                  [(and (= x xr) (= (- y yr) 1)) "up"]
+                                  [(and (= x xr) (= (- yr y) 1)) "down"]
+                                  [else "undefined"]))]
+            [(= player 2) (let* ([pair (which-ship? (- count 1))]
+                                 [vec (get-ship-coord (+ 1 (car pair)) player)]
+                                 [ref-coord (vector-ref (cdr (vector-ref ships-vector-2 (car pair))) (cdr pair))]
+                                 [xr (car ref-coord)]
+                                 [yr (cdr ref-coord)]
+                                 [x (car coord)]
+                                 [y (cdr coord)])
+                            (cond[(and (= (- x xr) 1) (= y yr)) "right"]
+                                 [(and (= (- xr x) 1) (= y yr)) "left"]
+                                 [(and (= x xr) (= (- y yr) 1)) "up"]
+                                 [(and (= x xr) (= (- yr y) 1)) "down"]
+                                 [else "undefined"]))]))
+                           
+      
+    
+     (define/public (fill-ships coord)
       (define pair (which-ship? count))
-      (cond [(equal? player 1) (if (search1 coord)
-                                   (void)    ;  if he tries to fill the same ship twice I am returning void 
-                                   (begin
+      (cond [(equal? player 1) (cond[ (search1 coord)
+                                   (void)]
+                                    ;  if he tries to fill the same ship twice I am returning void 
+                                   [(diag-checker coord) (begin
                                      (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
                                                   (exact-floor (cdr pair)) coord)
-                                     (set! count (+ 1 count))))]
-           [else               (if (search2 coord)
-                                   (void) 
-                                   (begin
+                                     (set! count (+ 1 count)))])]
+           [else               (cond[ (search2 coord)
+                                   (void)]
+                                    
+                                   [(diag-checker coord) (begin
                                      (vector-set! (cdr (vector-ref ships-vector-2 (exact-floor (car pair))))
                                                   (exact-floor (cdr pair)) coord)
-                                     (set! count (+ 1 count))))])
+                                     (set! count (+ 1 count)))])])
       
       (cond [(= count 18)
              (cond [(equal? player 1) (begin
