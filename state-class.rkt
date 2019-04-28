@@ -39,13 +39,15 @@
     (define mode 1) (define/public (change-mode) (set! mode 2))   ; two values : 0=placement 1=play
     (define player 1)  ; two values 1 2
     (define no-of-players 1)
-    (define learn 'on)
+    (define learn 'off)
     (define last-move (cons -1 -1))
     
     (define/public (change-player)
       (begin (set! count 1) (if (= player 1) (set! player 2) (set! player 1))))
     (define/public (get-mode) mode)
     (define/public (get-player) player)         ;  Saumya is using these two functions in display
+    (define/public (get-learn) learn)
+    (define/public (get-no-of-players) no-of-players)
     ; when player is changed in placement mode we set count to 0   
     (define ships-vector-1
       (build-vector 5 (lambda (x) (cons (string-append "ship" (~a (+ x 1)))
@@ -183,7 +185,9 @@
              [searched (vector-map (lambda (x) (vector-member coord x)) formatted)])
         (lookup (lambda (x) (not (eq? #f x))) searched 0)))
     
-
+    (define/public (get-rem-lengths)
+      (map (lambda (x) (ship-length? x))
+                               (lc x : x <- (to 5) @(not (full-ship-hit? x 2)))))
     
     (define (hit-for-comp)
       (define rem-length  (map (lambda (x) (ship-length? x))
@@ -218,7 +222,7 @@
                                                (get-ship-coord (car search-result) 1))
                                    (void))))
                     (set! last-move best-move)
-                    (displayln (numbers-grid strikes-grid-2 rem-length))
+                    (displayln (numbers-grid strikes-grid-2 rem-length learn))
                     (newline)
                     (if (= 1 (grid-ref strikes-grid-2 (cdr best-move) (car best-move)))
                         (void)

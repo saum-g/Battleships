@@ -133,11 +133,14 @@
              no-of-ways)])))
 
 (provide numbers-grid)
-(define (numbers-grid strikes-grid rem-lengths)
+(define (numbers-grid strikes-grid rem-lengths learn)
   (define grid (build-grid 10 10 0))
   (define pair (forbidden-and-hit-points strikes-grid 0 0 '() '()))
   (lc (set-grid! grid r c (+ (grid-ref grid r c) (ways-for-sqr c r (car pair) (cdr pair) length))) :
       r <- (list 0 1 2 3 4 5 6 7 8 9) c <- (list 0 1 2 3 4 5 6 7 8 9) length <- rem-lengths)
+  (cond [(equal? learn 'on) (let* ([ML-string-grid (list->vector (map list->vector (read-csv-file "Posn-frequency.csv")))]
+                                   [ML-grid (vector-map (lambda (y) (vector-map string->number y)) ML-string-grid)])
+                              (set! grid (merge grid ML-grid)))])
   grid)
 
 
@@ -191,12 +194,12 @@
   ML-grid)
 
 (define (determine-help strikes-grid prev-move rem-lengths learn)
-  (define prob-grid (numbers-grid strikes-grid rem-lengths))
-  (cond [(equal? learn 'on) (let* ([ML-string-grid (list->vector (map list->vector (read-csv-file "Posn-frequency.csv")))]
-                                   [ML-grid (vector-map (lambda (y) (vector-map string->number y)) ML-string-grid)])
-                              (set! prob-grid (merge prob-grid ML-grid)))])
+  (define prob-grid (numbers-grid strikes-grid rem-lengths learn))
+;  (cond [(equal? learn 'on) (let* ([ML-string-grid (list->vector (map list->vector (read-csv-file "Posn-frequency.csv")))]
+;                                   [ML-grid (vector-map (lambda (y) (vector-map string->number y)) ML-string-grid)])
+;                              (set! prob-grid (merge prob-grid ML-grid)))])
   (define list-of-moves (max-prob prob-grid))
-  (cond [(or (null? (cdr list-of-moves)) (null? (cdr (forbidden-and-hit-points strikes-grid 0 0 '() '()))))  (car list-of-moves)]
+  (cond [(null? (cdr list-of-moves)) (car list-of-moves)]
         [(null? (parity-narrow list-of-moves prev-move (min-of-list rem-lengths))) (car list-of-moves)]
         [else (car (parity-narrow list-of-moves prev-move (min-of-list rem-lengths)))]))
       

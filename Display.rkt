@@ -15,30 +15,60 @@
 (define (screen-resize state x y)
   (send state set-screen-size! x y))
 
+;used to find the largest value in a given grid, used to scale the values for showing gradient in single player implementation
+(define (grid-max max-value prob-grid r c)
+  (cond[(and (= c 9) (= r 9)) (cond [(> (grid-ref prob-grid 9 9) max-value) (grid-ref prob-grid 9 9)]
+                                    [else max-value])]
+       [(and (= c 9) (< r 9)) (cond[(> (grid-ref prob-grid r c) max-value) (grid-max (grid-ref prob-grid r c) prob-grid (+ r 1) 0)]
+                                   [else (grid-max max-value prob-grid (+ r 1) 0)])]
+       [else  (cond [(> (grid-ref prob-grid r c) max-value) (grid-max (grid-ref prob-grid r c) prob-grid r (+ c 1))]
+                    [else (grid-max max-value prob-grid r (+ c 1))])]))
+
 ;makes the grid for a player during play mode depending on the strikes made by other player, should be called with start-row-no=0
-(define (play-grid oth-pl-strikes w turn?)
-  ;to make a row for a the grid
-  (define (grid-square-place sqr-state)
-    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
-                                    (square (* 0.03 w) 'outline "black"))]
-          [(= sqr-state 1) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-                                    (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
-                                    (square (* 0.03 w) 'outline "black"))]
-          [(= sqr-state 2) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-                                    (square (* 0.03 w) (* (+ turn? 1) 127) "red")
-                                    (square (* 0.03 w) 'outline "black"))]
-          [(= sqr-state 3) (overlay (line (* 0.03 w) (* 0.03 w) "black")
-                                    (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
-                                    (square (* 0.03 w) (* (+ turn? 1) 127) "brown")
-                                    (square (* 0.03 w) 'outline "black"))]))
+;turn is 0 if its not the player's turn, 1 if it is, -1 if its single player game and we are making grid of computer's moves
+;numb-grid is 'nil if turn isnt -1 else it is the grid which is used to finally compute the best move
+(define (play-grid oth-pl-strikes w turn numb-grid)
+  (define max-val (if (equal? numb-grid 'nil) 'nil (grid-max -1 numb-grid 0 0)))
+  ;val is not equal to 'nil if turn is -1, in that case it is the ratio the gradient should have
+  (define (grid-square-place sqr-state val)
+    (cond [(= turn -1) (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (exact-floor (* val 127)) "lightblue")
+                                                       (square (* 0.03 w) 'outline "black"))]
+                             [(= sqr-state 1) (overlay (line (* 0.03 w) (* 0.03 w) "black")
+                                                       (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
+                                                       (square (* 0.03 w) 0 "lightblue")
+                                                       (square (* 0.03 w) 'outline "black"))]
+                             [(= sqr-state 2) (overlay (line (* 0.03 w) (* 0.03 w) "black")
+                                                       (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
+                                                       (square (* 0.03 w) 127 "red")
+                                                       (square (* 0.03 w) 'outline "black"))]
+                             [(= sqr-state 3) (overlay (line (* 0.03 w) (* 0.03 w) "black")
+                                                       (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
+                                                       (square (* 0.03 w) 127 "brown")
+                                                       (square (* 0.03 w) 'outline "black"))])]
+          [else (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (* (+ turn 1) 127) "lightblue")
+                                                (square (* 0.03 w) 'outline "black"))]
+                      [(= sqr-state 1) (overlay (line (* 0.03 w) (* 0.03 w) "black")
+                                                (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
+                                                (square (* 0.03 w) (* (+ turn 1) 127) "lightblue")
+                                                (square (* 0.03 w) 'outline "black"))]
+                      [(= sqr-state 2) (overlay (line (* 0.03 w) (* 0.03 w) "black")
+                                                (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
+                                                (square (* 0.03 w) (* (+ turn 1) 127) "red")
+                                                (square (* 0.03 w) 'outline "black"))]
+                      [(= sqr-state 3) (overlay (line (* 0.03 w) (* 0.03 w) "black")
+                                                (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
+                                                (square (* 0.03 w) (* (+ turn 1) 127) "brown")
+                                                (square (* 0.03 w) 'outline "black"))])]))
   (define (show-grid start-no)
-    (cond [(= start-no 9) (show-row (vector-ref oth-pl-strikes 9) 0)]
-          [else (above (show-row (vector-ref oth-pl-strikes start-no) 0) (show-grid (+ start-no 1)))]))
-  (define (show-row ships-row start-no)
-    (cond [(= start-no 9) (grid-square-place (vector-ref ships-row 9))]
-          [else (beside (grid-square-place (vector-ref ships-row start-no)) (show-row ships-row (+ 1 start-no)))]))
+    (cond [(= start-no 9) (show-row (vector-ref oth-pl-strikes 9) 0 9)]
+          [else (above (show-row (vector-ref oth-pl-strikes start-no) 0 start-no) (show-grid (+ start-no 1)))]))
+  ;to make a row for a the grid
+  (define (show-row ships-row start-no row-no)
+    (cond [(= start-no 9) (if (equal? 'nil max-val) (grid-square-place (vector-ref ships-row 9) 'nil) (grid-square-place (vector-ref ships-row 9) (/ (grid-ref numb-grid row-no 9) max-val)))]
+          [else (beside (if (equal? 'nil max-val)
+                            (grid-square-place (vector-ref ships-row start-no) 'nil)
+                            (grid-square-place (vector-ref ships-row start-no) (/ (grid-ref numb-grid row-no start-no) max-val)))
+                        (show-row ships-row (+ 1 start-no) row-no))]))
   (show-grid 0))
 
 ;convert vector to grid
@@ -78,14 +108,15 @@
   (define w (car (send state get-screen-size)))
   (define h (cdr (send state get-screen-size)))
   (define bckg (rectangle w h 'solid "white"))
-  (define pl1-grid (cond [(and (= (send state get-player) 1) (equal? (send state get-mode) 2))
-                          (play-grid (get-field strikes-grid-2 state) w 0)]
-                         [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-2 state) w 1)]
+  (define pl1-grid (cond [(and (equal? (send state get-mode) 2) (= (send state get-no-of-players) 1))
+                          (play-grid (get-field strikes-grid-2 state) w -1 (numbers-grid (get-field strikes-grid-2 state) (send state get-rem-lengths) (send state get-learn)))]
+                         [(and (= (send state get-player) 1) (equal? (send state get-mode) 2)) (play-grid (get-field strikes-grid-2 state) w 0 'nil)]
+                         [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-2 state) w 1 'nil)]
                          [(= (send state get-player) 1) (place-grid (convert-to-grid (send state get-sv1)) w 1)]
                          [else (place-grid (build-grid 10 10 0) w 0)]))
   (define pl2-grid (cond [(and (= (send state get-player) 2) (equal? (send state get-mode) 2))
-                          (play-grid (get-field strikes-grid-2 state) w 0)]
-                         [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-1 state) w 1)]
+                          (play-grid (get-field strikes-grid-2 state) w 0 'nil)]
+                         [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-1 state) w 1 'nil)]
                          [(= (send state get-player) 2) (place-grid (convert-to-grid (send state get-sv2)) w 1)]
                          [else (place-grid (build-grid 10 10 0) w 0)]))
   (define pl1-show (text "Player 1:" (exact-floor (- (* 0.125 h) (* 0.0375 w))) "Black"))
