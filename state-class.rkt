@@ -192,7 +192,7 @@
             [else (displayln rem-length)
                   (displayln "with the forbidden points: ")
                   (displayln (car (forbidden-and-hit-points strikes-grid-2 0 0 '() '())))
-                  (define best-move (determine-move strikes-grid-2 last-move rem-length))                                                                         
+                  (define best-move (determine-move strikes-grid-2 last-move rem-length learn))                                                                         
                   (displayln best-move)
                   (let ([search-result (search1 best-move)])
                     (if (not search-result)

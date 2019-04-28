@@ -179,20 +179,22 @@
             list-of-moves)))
 
 (provide determine-move)
-(define (determine-move strikes-grid prev-move rem-lengths)
-  (cond[(equal? learn 'on) (let*([ML-string-grid (list->vector (map list->vector (read-csv-file "Posn-frequency.csv")))]
-                                 [ML-grid (vector-map (lambda (y) (vector-map string->number y)) ML-string-grid)]
-                                 [merged-grid (merge strikes-grid ML-grid)]
-                                 [coord (determine-help merged-grid prev-move rem-lengths)])
-                             (cons (+ 0.0 (car coord)) (+ 0.0 (cdr coord))))]
-       [else (let ([coord (determine-help strikes-grid prev-move rem-lengths)])
-               (cons (+ 0.0 (car coord)) (+ 0.0 (cdr coord))))]))
+(define (determine-move strikes-grid prev-move rem-lengths learn)
+  (let ([coord (determine-help strikes-grid prev-move rem-lengths learn)])
+               (cons (+ 0.0 (car coord)) (+ 0.0 (cdr coord)))))
 
 (define (merge strikes-grid ML-grid)
-  '())
+  (define n 2)
+  (lc (set-grid! ML-grid x y (+ (grid-ref strikes-grid x y) (* n (grid-ref strikes-grid x y) (grid-ref ML-grid x y)))) :
+      x <- (list 0 1 2 3 4 5 6 7 8 9) y <- (list 0 1 2 3 4 5 6 7 8 9))
+  (displayln ML-grid)
+  ML-grid)
 
-(define (determine-help strikes-grid prev-move rem-lengths)
+(define (determine-help strikes-grid prev-move rem-lengths learn)
   (define prob-grid (numbers-grid strikes-grid rem-lengths))
+  (cond [(equal? learn 'on) (let* ([ML-string-grid (list->vector (map list->vector (read-csv-file "Posn-frequency.csv")))]
+                                   [ML-grid (vector-map (lambda (y) (vector-map string->number y)) ML-string-grid)])
+                              (set! prob-grid (merge prob-grid ML-grid)))])
   (define list-of-moves (max-prob prob-grid))
   (cond [(null? (cdr list-of-moves)) (car list-of-moves)]
         [(null? (parity-narrow list-of-moves prev-move (min-of-list rem-lengths))) (car list-of-moves)]
