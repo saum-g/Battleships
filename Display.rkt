@@ -115,12 +115,12 @@
                          [(= (send state get-player) 1) (place-grid (convert-to-grid (send state get-sv1)) w 1)]
                          [else (place-grid (build-grid 10 10 0) w 0)]))
   (define pl2-grid (cond [(and (= (send state get-player) 2) (equal? (send state get-mode) 2))
-                          (play-grid (get-field strikes-grid-2 state) w 0 'nil)]
+                          (play-grid (get-field strikes-grid-1 state) w 0 'nil)]
                          [(equal? (send state get-mode) 2) (play-grid (get-field strikes-grid-1 state) w 1 'nil)]
                          [(= (send state get-player) 2) (place-grid (convert-to-grid (send state get-sv2)) w 1)]
                          [else (place-grid (build-grid 10 10 0) w 0)]))
-  (define pl1-show (text "Player 1:" (exact-floor (- (* 0.125 h) (* 0.0375 w))) "Black"))
-  (define pl2-show (text "Player 2:" (exact-floor (- (* 0.125 h) (* 0.0375 w))) "Black"))
+  (define pl1-show (text "Player 1" (exact-floor (- (* 0.125 h) (* 0.0375 w))) "Black"))
+  (define pl2-show (text "Player 2" (exact-floor (- (* 0.125 h) (* 0.0375 w))) "Black"))
   (place-images (list pl1-show pl2-show pl1-grid pl2-grid)
                 (list (make-posn (* 0.25 w) (- (* 0.375 h) (* 0.1125 w))) (make-posn (* 0.75 w) (- (* 0.375 h) (* 0.1125 w)))
                       (make-posn (* 0.25 w) (* 0.5 h)) (make-posn (* 0.75 w) (* 0.5 h)))
@@ -153,8 +153,8 @@
   (define h (cdr (send state get-screen-size)))
   (define bckg (rectangle w h 'solid "white"))
   (if (all-ships-sunk (get-field strikes-grid-1 state) 0 0 0)
-      (place-images (list (text "Player1 Wins!!" (exact-floor (* 0.05 w)) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)
-      (place-images (list (text "Player2 Wins!!" (exact-floor (* 0.05 w)) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)))
+      (place-images (list (text "Congrats to player 1!" (exact-floor (* 0.05 w)) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)
+      (place-images (list (text "Congrats to player 2!" (exact-floor (* 0.05 w)) "Black")) (list (make-posn (* 0.5 w) (* 0.5 h))) bckg)))
 
 (big-bang init-state
   (display-mode 'fullscreen screen-resize)

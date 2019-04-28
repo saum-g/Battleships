@@ -38,7 +38,7 @@
     ;  data members (all private)
     (define mode 1) (define/public (change-mode) (set! mode 2))   ; two values : 0=placement 1=play
     (define player 1)  ; two values 1 2
-    (define no-of-players 1)
+    (define no-of-players 2)
     (define learn 'off)
     (define last-move (cons -1 -1))
     
@@ -67,8 +67,8 @@
     ; where all he has hit so far on the opponent's grid
     ; 0 -> no attempt  1 -> miss  2 -> hit  3-> ship sunk
 
-    (define count 1) 
-    (define (which-ship? n)
+    (field [count 1]) 
+    (define/public (which-ship? n)
       (cond [(and (>= n 1) (<= n 2)) (cons 0 (- (remainder n 3) 1))]
             [(and (>= n 3) (<= n 5)) (cons 1 (- (remainder n 6) 3))]
             [(and (>= n 6) (<= n 8)) (cons 2 (- (remainder n 9) 6))]
@@ -88,7 +88,7 @@
       (cond[(or (= count 1) (= count 3) (= count 6) (= count 9) (= count 13)) #t]
            [(or (= count 2) (= count 4) (= count 7) (= count 10) (= count 14))
             (let([res (direction-finder coord)])
-              (displayln res)
+              ;(displayln res)
               (cond[(eq? res "undefined") #f]
                    [else (begin (set! direction (direction-finder coord)) #t)]))]
            [else (eq? direction (direction-finder coord))]))
@@ -101,7 +101,7 @@
                                  [yr (cdr ref-coord)]
                                  [x (car coord)]
                                  [y (cdr coord)])
-                            (displayln pair)
+                           ; (displayln pair)
                             (cond [(and (= (- x xr) 1) (= y yr)) "right"]
                                   [(and (= (- xr x) 1) (= y yr)) "left"]
                                   [(and (= x xr) (= (- y yr) 1)) "up"]
@@ -130,7 +130,13 @@
                                    [(diag-checker coord) (begin
                                      (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
                                                   (exact-floor (cdr pair)) coord)
-                                     (set! count (+ 1 count)))])]
+                                     (set! count (+ 1 count)))]
+                                   [else (begin
+                                           (map (lambda (x) (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
+                                                                         x (cons -1 -1)))
+                                                (cons 0 (to (exact-floor (cdr pair)))))
+                                           (set! count (- count (exact-floor (cdr pair)))))]
+                                    )]
            [else               (cond[ (search2 coord)
                                    (void)]
                                     
@@ -140,12 +146,12 @@
                                      (set! count (+ 1 count)))])])
       
       (cond [(= count 18)
-             (cond [(equal? player 1) (begin
-                                        (change-player) (set! count 1)
-                                        (if (= no-of-players 1)
-                                            (fill-for-comp)
-                                            (void)))]
-                  [else (set! mode 2) (change-player)])]))
+             (cond [(equal? player 1) (displayln "player 1 filled ships")
+                                      (change-player) (set! count 1)
+                                      (if (= no-of-players 1)
+                                          (fill-for-comp)
+                                          (void))]
+                  [else (set! mode 2) (displayln "Fill ships over.") (change-player)])]))
 
     
     ;  we need to change player 1 to 2 when the ships-vector-1 is full.
@@ -246,7 +252,7 @@
                         (begin (displayln "giving control to computer")    ; this line transfers control to computer
                                (hit-for-comp))  
                         (begin
-                          (displayln "changing player to 2 (in two player mode")   ;  this line is normal control change to player 2 (on click input)
+                          (displayln "changing player to 2 (in two player mode)")   ;  this line is normal control change to player 2 (on click input)
                           (change-player)))  
                     (void))))     ; this line of code gives him a second chance if he has sunk part of a ship
 
@@ -269,7 +275,10 @@
 ;                                      (change-player))
 ;                               (hit (determine-move strikes-grid-2 last-move '(2 3 3 4 5)))))
                 
-                (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord))) (change-player) (void))))))
+                (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord)))
+                    (begin (displayln "changing player to 1 (in two player mode)")
+                           (change-player))
+                    (void))))))
   
 
     (define/public (return-grid-coord x y)
