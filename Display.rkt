@@ -20,19 +20,19 @@
   ;to make a row for a the grid
   (define (grid-square-place sqr-state)
     (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
-                                    (square (* 0.03 w) 'outline "white"))]
+                                    (square (* 0.03 w) 'outline "black"))]
           [(= sqr-state 1) (overlay (line (* 0.03 w) (* 0.03 w) "black")
                                     (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
                                     (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
-                                    (square (* 0.03 w) 'outline "white"))]
+                                    (square (* 0.03 w) 'outline "black"))]
           [(= sqr-state 2) (overlay (line (* 0.03 w) (* 0.03 w) "black")
                                     (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
                                     (square (* 0.03 w) (* (+ turn? 1) 127) "red")
-                                    (square (* 0.03 w) 'outline "white"))]
+                                    (square (* 0.03 w) 'outline "black"))]
           [(= sqr-state 3) (overlay (line (* 0.03 w) (* 0.03 w) "black")
                                     (line (- 0 (* 0.03 w)) (* 0.03 w) "black")
                                     (square (* 0.03 w) (* (+ turn? 1) 127) "brown")
-                                    (square (* 0.03 w) 'outline "white"))]))
+                                    (square (* 0.03 w) 'outline "black"))]))
   (define (show-grid start-no)
     (cond [(= start-no 9) (show-row (vector-ref oth-pl-strikes 9) 0)]
           [else (above (show-row (vector-ref oth-pl-strikes start-no) 0) (show-grid (+ start-no 1)))]))
@@ -61,9 +61,9 @@
   ;for making individual squares depending on the initial state
   (define (grid-square-place sqr-state)
     (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
-                                    (square (* 0.03 w) 'outline "white"))]
+                                    (square (* 0.03 w) 'outline "black"))]
           [(= sqr-state 1) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "red")
-                                    (square (* 0.03 w) 'outline "white"))]))
+                                    (square (* 0.03 w) 'outline "black"))]))
   (define (show-grid start-no)
     (cond [(= start-no 9) (show-row (vector-ref ships-grid 9) 0)]
           [else (above (show-row (vector-ref ships-grid start-no) 0) (show-grid (+ start-no 1)))]))

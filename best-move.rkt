@@ -196,7 +196,7 @@
                                    [ML-grid (vector-map (lambda (y) (vector-map string->number y)) ML-string-grid)])
                               (set! prob-grid (merge prob-grid ML-grid)))])
   (define list-of-moves (max-prob prob-grid))
-  (cond [(null? (cdr list-of-moves)) (car list-of-moves)]
+  (cond [(or (null? (cdr list-of-moves)) (null? (cdr (forbidden-and-hit-points strikes-grid 0 0 '() '()))))  (car list-of-moves)]
         [(null? (parity-narrow list-of-moves prev-move (min-of-list rem-lengths))) (car list-of-moves)]
         [else (car (parity-narrow list-of-moves prev-move (min-of-list rem-lengths)))]))
       
