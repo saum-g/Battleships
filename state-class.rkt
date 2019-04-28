@@ -122,28 +122,31 @@
                            
       
     
-     (define/public (fill-ships coord)
+    (define/public (fill-ships coord)
       (define pair (which-ship? count))
-      (cond [(equal? player 1) (cond[ (search1 coord)
-                                   (void)]
-                                    ;  if he tries to fill the same ship twice I am returning void 
-                                   [(diag-checker coord) (begin
-                                     (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
-                                                  (exact-floor (cdr pair)) coord)
-                                     (set! count (+ 1 count)))]
-                                   [else (begin
-                                           (map (lambda (x) (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
-                                                                         x (cons -1 -1)))
-                                                (cons 0 (to (exact-floor (cdr pair)))))
-                                           (set! count (- count (exact-floor (cdr pair)))))]
-                                    )]
-           [else               (cond[ (search2 coord)
-                                   (void)]
-                                    
-                                   [(diag-checker coord) (begin
-                                     (vector-set! (cdr (vector-ref ships-vector-2 (exact-floor (car pair))))
-                                                  (exact-floor (cdr pair)) coord)
-                                     (set! count (+ 1 count)))])])
+      (cond [(equal? player 1) (cond [(search1 coord) (void)]
+                                     ;  if he tries to fill the same ship twice I am returning void 
+                                     [(diag-checker coord)
+                                      (begin
+                                         (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
+                                                      (exact-floor (cdr pair)) coord)
+                                         (set! count (+ 1 count)))]
+                                     [else (begin
+                                             (map (lambda (x) (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
+                                                                           x (cons -1 -1)))
+                                                  (cons 0 (to (exact-floor (cdr pair)))))
+                                             (set! count (- count (exact-floor (cdr pair)))))])]
+            [else               (cond [(search2 coord) (void)]
+                                      [(diag-checker coord)
+                                       (begin
+                                         (vector-set! (cdr (vector-ref ships-vector-2 (exact-floor (car pair))))
+                                                      (exact-floor (cdr pair)) coord)
+                                         (set! count (+ 1 count)))]
+                                      [else (begin
+                                              (map (lambda (x) (vector-set! (cdr (vector-ref ships-vector-2 (exact-floor (car pair))))
+                                                                            x (cons -1 -1)))
+                                                   (cons 0 (to (exact-floor (cdr pair)))))
+                                              (set! count (- count (exact-floor (cdr pair)))))])])
       
       (cond [(= count 18)
              (cond [(equal? player 1) (displayln "player 1 filled ships")
@@ -151,7 +154,7 @@
                                       (if (= no-of-players 1)
                                           (fill-for-comp)
                                           (void))]
-                  [else (set! mode 2) (displayln "Fill ships over.") (change-player)])]))
+                   [else (set! mode 2) (displayln "Fill ships over.") (change-player)])]))
 
     
     ;  we need to change player 1 to 2 when the ships-vector-1 is full.
