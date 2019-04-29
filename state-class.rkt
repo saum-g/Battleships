@@ -37,7 +37,7 @@
     (super-new)
     
     ;  data members (all private)
-    (define mode 1) (define/public (change-mode) (set! mode 2))   ; two values : 0=placement 1=play
+    (define mode 1) (define/public (change-mode) (set! mode 2))   ; two values : 1=placement 2=play
     (define player 1)  ; two values 1 2
     (define no-of-players 2)
     (define learn 'off)
@@ -45,12 +45,12 @@
 
     
 (define/public (set-modes! which-option?)
-      (cond ([(eq? which-option? 'one-players-easy)
+      (cond [(eq? which-option? 'one-players-easy)
               (begin (set! no-of-players 1) (set! learn 'off))]
              [(eq? which-option? 'one-player-difficult)
               (begin (set! no-of-players 1) (set! learn 'on))]
              [(eq? which-option? 'two-player)
-              (begin (set! no-of-players 2))])))
+              (begin (set! no-of-players 2))]))
     
     (define/public (change-player)
       (begin (set! count 1) (if (= player 1) (set! player 2) (set! player 1))))
