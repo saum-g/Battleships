@@ -90,9 +90,9 @@
 (define (place-grid ships-grid w turn?)
   ;for making individual squares depending on the initial state
   (define (grid-square-place sqr-state)
-    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (* (+ turn? 9) 25) "lightblue")
+    (cond [(= sqr-state 0) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "lightblue")
                                     (square (* 0.03 w) 'outline "black"))]
-          [(= sqr-state 1) (overlay (square (* 0.03 w) (* (+ turn? 9) 25) "red")
+          [(= sqr-state 1) (overlay (square (* 0.03 w) (* (+ turn? 1) 127) "red")
                                     (square (* 0.03 w) 'outline "black"))]))
   (define (show-grid start-no)
     (cond [(= start-no 9) (show-row (vector-ref ships-grid 9) 0)]
@@ -149,7 +149,7 @@
   ;(displayln state)
   (define grid-coord (send state return-grid-coord x y))
   (cond [(not (mouse=? event "button-down")) (void)]
-        [(equal? (cons -1 -1) grid-coord) (void)]
+        [(or (equal? (cons -1 -1) grid-coord) (equal? grid-coord (void))) (void)]
         [(= (send state get-mode) 1) (send state fill-ships grid-coord)]
         [else (send state hit grid-coord)])
   state)

@@ -44,13 +44,13 @@
     (define last-move (cons -1 -1))
 
     
-(define/public (set-modes! which-option?)
-      (cond [(eq? which-option? 'one-players-easy)
-              (begin (set! mode 1) (set! no-of-players 1) (set! learn 'off))]
-             [(eq? which-option? 'one-player-difficult)
-              (begin (set! mode 1) (set! no-of-players 1) (set! learn 'on))]
-             [(eq? which-option? 'two-player)
-              (begin (set! mode 1) (set! no-of-players 2))]))
+    (define/public (set-modes! which-option?)
+      (cond [(equal? which-option? 'one-player-easy)
+             (begin (set! mode 1) (set! no-of-players 1) (set! learn 'off))]
+            [(equal? which-option? 'one-player-difficult)
+             (begin (set! mode 1) (set! no-of-players 1) (set! learn 'on))]
+            [(equal? which-option? 'two-player)
+             (begin (set! mode 1) (set! no-of-players 2))]))
     
     (define/public (change-player)
       (begin (set! count 1) (if (= player 1) (set! player 2) (set! player 1))))
@@ -92,9 +92,9 @@
       (map (lambda (x) (send this fill-ships x)) (random-ships))
       (set! mode 2))
 
-     (define direction "undefined")
+    (define direction "undefined")
     
-     (define (diag-checker coord)
+    (define (diag-checker coord)
       (cond[(or (= count 1) (= count 3) (= count 6) (= count 9) (= count 13)) #t]
            [(or (= count 2) (= count 4) (= count 7) (= count 10) (= count 14))
             (let([res (direction-finder coord)])
@@ -111,7 +111,7 @@
                                  [yr (cdr ref-coord)]
                                  [x (car coord)]
                                  [y (cdr coord)])
-                           ; (displayln pair)
+                            ; (displayln pair)
                             (cond [(and (= (- x xr) 1) (= y yr)) "right"]
                                   [(and (= (- xr x) 1) (= y yr)) "left"]
                                   [(and (= x xr) (= (- y yr) 1)) "up"]
@@ -138,9 +138,9 @@
                                      ;  if he tries to fill the same ship twice I am returning void 
                                      [(diag-checker coord)
                                       (begin
-                                         (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
-                                                      (exact-floor (cdr pair)) coord)
-                                         (set! count (+ 1 count)))]
+                                        (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
+                                                     (exact-floor (cdr pair)) coord)
+                                        (set! count (+ 1 count)))]
                                      [else (begin
                                              (map (lambda (x) (vector-set! (cdr (vector-ref ships-vector-1 (exact-floor (car pair))))
                                                                            x (cons -1 -1)))
@@ -178,7 +178,7 @@
     
     (define/public (full-ship-hit? ship-no player)  
       (if (= player 1)   ;  checks in player 1's strikes grid (where all he has hit so far (on player 2's "ship grid"))
-                         ;  whether coordinates of player 2's ship with given ship-no are all hit (value 2).
+          ;  whether coordinates of player 2's ship with given ship-no are all hit (value 2).
           (if (vector-member 0
                              (vector-map (lambda (x) (grid-ref strikes-grid-1 (cdr x) (car x)))  
                                          (get-ship-coord ship-no 2)))  ; find val on strikes grid for each ship coord
@@ -193,7 +193,7 @@
           (if (p? (vector-ref v i)) (cons (+ 1 i) (+ 1 (vector-ref v i)))  
               (lookup p? v (+ i 1)))))
 
- ;  search returns (ship-no . position) if found. Else #f
+    ;  search returns (ship-no . position) if found. Else #f
 
     (define/public (search1 coord)
       (let* ([formatted (vector-map (lambda (x) (cdr x)) ships-vector-1)]  
@@ -206,7 +206,7 @@
     
     (define/public (get-rem-lengths)
       (map (lambda (x) (ship-length? x))
-                               (lc x : x <- (to 5) @(not (full-ship-hit? x 2)))))
+           (lc x : x <- (to 5) @(not (full-ship-hit? x 2)))))
     
     (define (hit-for-comp)
       (define rem-length  (map (lambda (x) (ship-length? x))
@@ -278,15 +278,15 @@
                               (vector-map (lambda (x) (set-grid! strikes-grid-2 (cdr x) (car x) 3))
                                           (get-ship-coord (car search-result) 1))
                               (void)))) ; common to both
-;                (if (= no-of-players 1)
-;                    (begin (set! last-move coord)
-;                           (display "numbers grid: ")
-;                           (displayln (numbers-grid strikes-grid-2 '(2 3 3 4 5)))
-;                           (newline)
-;                           (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord)))
-;                               (begin (displayln "player changing to 1")
-;                                      (change-player))
-;                               (hit (determine-move strikes-grid-2 last-move '(2 3 3 4 5)))))
+                ;                (if (= no-of-players 1)
+                ;                    (begin (set! last-move coord)
+                ;                           (display "numbers grid: ")
+                ;                           (displayln (numbers-grid strikes-grid-2 '(2 3 3 4 5)))
+                ;                           (newline)
+                ;                           (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord)))
+                ;                               (begin (displayln "player changing to 1")
+                ;                                      (change-player))
+                ;                               (hit (determine-move strikes-grid-2 last-move '(2 3 3 4 5)))))
                 
                 (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord)))
                     (begin (displayln "changing player to 1 (in two player mode)")
@@ -296,32 +296,32 @@
 
     (define/public (return-grid-coord x y)
       (cond [(and (= mode 1) (= player 1)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))
-                                                  (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
-                                                  (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
-                                             (cons (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width)))
-                                                   (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
-                                             (cons -1 -1))]
+                                                    (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
+                                                    (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
+                                               (cons (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width)))
+                                                     (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
+                                               (cons -1 -1))]
             [(and (= mode 1) (= player 2)) (if (and (<= x (* 0.9 screen-width)) (>= x (* 0.6 screen-width))
-                                                  (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
-                                                  (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
-                                             (cons (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width)))
-                                                   (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
-                                             (cons -1 -1))]
+                                                    (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
+                                                    (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
+                                               (cons (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width)))
+                                                     (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
+                                               (cons -1 -1))]
             [(and (= mode 2) (= player 1)) (if (and (<= x (* 0.9 screen-width)) (>= x (* 0.6 screen-width))
-                                                  (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
-                                                  (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
-                                             (cons (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width)))
-                                                   (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
-                                             (cons -1 -1))]
+                                                    (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
+                                                    (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
+                                               (cons (floor (/ (- x (* 0.6 screen-width)) (* 0.03 screen-width)))
+                                                     (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
+                                               (cons -1 -1))]
             [(and (= mode 2) (= player 2)) (if (and (<= x (* 0.4 screen-width)) (>= x (* 0.1 screen-width))
-                                                  (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
-                                                  (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
-                                             (cons (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width)))
-                                                   (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
-                                             (cons -1 -1))]
+                                                    (<= y (+ (* 0.5 screen-height) (* 0.15 screen-width)))
+                                                    (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
+                                               (cons (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width)))
+                                                     (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
+                                               (cons -1 -1))]
             [(= mode 0)                    (cond[ (and (<= x (* 0.75 screen-width)) (>= x (* 0.25 screen-width))
-                                                    (<= y (* 0.62 screen-height)) (>= y (* 0.52 screen-height)))
-                                               (set-modes! 'one-player-easy)]
+                                                       (<= y (* 0.62 screen-height)) (>= y (* 0.52 screen-height)))
+                                                  (set-modes! 'one-player-easy)]
                                                 [ (and (<= x (* 0.75 screen-width)) (>= x (* 0.25 screen-width))
                                                        (<= y (* 0.765 screen-height)) (>= y (* 0.665 screen-height)))
                                                   (set-modes! 'one-player-difficult)]
