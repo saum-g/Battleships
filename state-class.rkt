@@ -321,13 +321,13 @@
                                                (cons -1 -1))]
             [(= mode 0)                    (cond[ (and (<= x (* 0.75 screen-width)) (>= x (* 0.25 screen-width))
                                                        (<= y (* 0.62 screen-height)) (>= y (* 0.52 screen-height)))
-                                                  (set-modes! 'one-player-easy)]
+                                                  'one-player-easy]
                                                 [ (and (<= x (* 0.75 screen-width)) (>= x (* 0.25 screen-width))
                                                        (<= y (* 0.765 screen-height)) (>= y (* 0.665 screen-height)))
-                                                  (set-modes! 'one-player-difficult)]
+                                                  'one-player-difficult]
                                                 [ (and (<= x (* 0.75 screen-width)) (>= x (* 0.25 screen-width))
                                                        (<= y (* 0.91 screen-height)) (>= y (* 0.81 screen-height)))
-                                                  (set-modes! 'two-player)]
+                                                  'two-player]
                                                 [else (void)])]))
 
 

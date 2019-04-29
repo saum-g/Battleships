@@ -151,7 +151,8 @@
   (cond [(not (mouse=? event "button-down")) (void)]
         [(or (equal? (cons -1 -1) grid-coord) (equal? grid-coord (void))) (void)]
         [(= (send state get-mode) 1) (send state fill-ships grid-coord)]
-        [else (send state hit grid-coord)])
+        [(= (send state get-mode) 2) (send state hit grid-coord)]
+        [(= (send state get-mode) 0) (send state set-modes! grid-coord)])
   state)
 
 ;initial state
