@@ -20,6 +20,7 @@
      (append* (lc (lc expr :  qualifier ... ) : var <- drawn-from))]))
 
 
+
 (define (ship-length? ship-no)
       (cond [(= ship-no 1) 2]
             [(= ship-no 2) 3]
@@ -41,6 +42,15 @@
     (define no-of-players 2)
     (define learn 'off)
     (define last-move (cons -1 -1))
+
+    
+(define/public (set-modes! which-option?)
+      (cond ([(eq? which-option? 'one-players-easy)
+              (begin (set! no-of-players 1) (set! learn 'off))]
+             [(eq? which-option? 'one-player-difficult)
+              (begin (set! no-of-players 1) (set! learn 'on))]
+             [(eq? which-option? 'two-player)
+              (begin (set! no-of-players 2))])))
     
     (define/public (change-player)
       (begin (set! count 1) (if (= player 1) (set! player 2) (set! player 1))))
@@ -308,7 +318,17 @@
                                                   (>= y (- (* 0.5 screen-height) (* 0.15 screen-width))))
                                              (cons (floor (/ (- x (* 0.1 screen-width)) (* 0.03 screen-width)))
                                                    (floor (/ (- y (- (* 0.5 screen-height) (* 0.15 screen-width))) (* 0.03 screen-width))))
-                                             (cons -1 -1))]))
+                                             (cons -1 -1))]
+            [(= mode 0)                    (cond[ (and (<= x (* 0.75 screen-width)) (>= x (* 0.25 screen-width))
+                                                    (<= y (* 0.62 screen-height)) (>= y (* 0.52 screen-height)))
+                                               (set-modes! 'one-player-easy)]
+                                                [ (and (<= x (* 0.75 screen-width)) (>= x (* 0.25 screen-width))
+                                                       (<= y (* 0.765 screen-height)) (>= y (* 0.665 screen-height)))
+                                                  (set-modes! 'one-player-difficult)]
+                                                [ (and (<= x (* 0.75 screen-width)) (>= x (* 0.25 screen-width))
+                                                       (<= y (* 0.91 screen-height)) (>= y (* 0.81 screen-height)))
+                                                  (set-modes! 'two-player)]
+                                                [else (void)])]))
 
 
     ;storing the size of screen, assuming 1000X500 initially, changed during execution
