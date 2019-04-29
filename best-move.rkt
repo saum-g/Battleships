@@ -201,9 +201,10 @@
   (define list-of-moves (max-prob prob-grid))
   (cond [(null? (cdr list-of-moves)) (car list-of-moves)]
         [(null? (parity-narrow list-of-moves prev-move (min-of-list rem-lengths))) (car list-of-moves)]
-        [else (car (parity-narrow list-of-moves prev-move (min-of-list rem-lengths)))]))
+        [else (random-element (parity-narrow list-of-moves prev-move (min-of-list rem-lengths)))]))
       
-
+(define (random-element l)
+  (list-ref l (random 0 (length l))))
 
 
 ; generates a random list of 17 coordinates which make sense as ships 1 player mode (computer mode)
