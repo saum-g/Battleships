@@ -164,7 +164,15 @@
                                       (if (= no-of-players 1)
                                           (fill-for-comp)
                                           (void))]
-                   [else (set! mode 2) (displayln "Fill ships over.") (change-player)])]))
+                   [else (set! mode 2)
+                         (displayln "Ships have been filled")
+                         (if (= no-of-players 1)
+                             (begin (display "Player's ships-vector is ") (displayln ships-vector-1)
+                             (display "Computer's ship-vector is ") (displayln ships-vector-2))
+                             (begin (display "Player 1's ships-vector is ") (displayln ships-vector-1)
+                             (display "Player 2's ship-vector is ") (displayln ships-vector-2)))
+                         (newline)
+                         (change-player)])]))
 
     
     ;  we need to change player 1 to 2 when the ships-vector-1 is full.
@@ -212,11 +220,10 @@
       (define rem-length  (map (lambda (x) (ship-length? x))
                                (lc x : x <- (to 5) @(not (full-ship-hit? x 2)))))
       (cond [(null? rem-length) (void)]
-            [else (displayln rem-length)
-                  (displayln "with the forbidden points: ")
-                  (displayln (car (forbidden-and-hit-points strikes-grid-2 0 0 '() '())))
-                  (define best-move (determine-move strikes-grid-2 last-move rem-length learn))                                                                         
-                  (displayln best-move)
+            [else (define best-move (determine-move strikes-grid-2 last-move rem-length learn))
+                  (display "Numbers grid is as follows ")
+                  (displayln (numbers-grid strikes-grid-2 rem-length learn))
+                  (display "best move right now is ") (displayln best-move)
                   (let ([search-result (search1 best-move)])
                     (if (not search-result)
                         (begin (set-grid! strikes-grid-2 (cdr best-move) (car best-move) 1))  ; set it to 1 if it's a miss
@@ -241,11 +248,11 @@
                                                (get-ship-coord (car search-result) 1))
                                    (void))))
                     (set! last-move best-move)
-                    (displayln (numbers-grid strikes-grid-2 rem-length learn))
                     (newline)
                     (if (= 1 (grid-ref strikes-grid-2 (cdr best-move) (car best-move)))
-                        (void)
-                        (hit-for-comp)))]))
+                        (displayln "Player's turn now")
+                        (begin (displayln "Computer's turn again")
+                               (hit-for-comp))))]))
 
 
     (define/public (hit coord)
@@ -253,6 +260,7 @@
       (if (= player 1)
           (if (not (= 0 (grid-ref strikes-grid-1 (cdr coord) (car coord)))) (void)  ;  if hitting at same spot twice, do nothing
               (let ([search-result (search2 coord)])
+                (display "The move is ") (displayln coord) (newline)
                 (if (not search-result)
                     (begin (set-grid! strikes-grid-1 (cdr coord) (car coord) 1))  ; set it to 1 if it's a miss
                     (begin (set-grid! strikes-grid-1 (cdr coord) (car coord) 2)  ; set it to 2 if it's a strike
@@ -265,12 +273,15 @@
                         (begin (displayln "giving control to computer")    ; this line transfers control to computer
                                (hit-for-comp))  
                         (begin
-                          (displayln "changing player to 2 (in two player mode)")   ;  this line is normal control change to player 2 (on click input)
-                          (change-player)))  
-                    (void))))     ; this line of code gives him a second chance if he has sunk part of a ship
+                          (displayln "player 2's turn")   ;  this line is normal control change to player 2 (on click input)
+                          (change-player)))
+                    (if (= no-of-players 1)
+                        (displayln "Player's turn again")
+                        (displayln "Player 1's turn again"))))); these line of code gives him a second chance if he has sunk part of a ship
 
           (if (not (= 0 (grid-ref strikes-grid-2 (cdr coord) (car coord)))) (void)
               (let ([search-result (search1 coord)])
+                (display "The move is ") (displayln coord) (newline)
                 (if(not search-result)
                    (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 1))
                    (begin (set-grid! strikes-grid-2 (cdr coord) (car coord) 2)
@@ -289,9 +300,9 @@
                 ;                               (hit (determine-move strikes-grid-2 last-move '(2 3 3 4 5)))))
                 
                 (if (= 1 (grid-ref strikes-grid-2 (cdr coord) (car coord)))
-                    (begin (displayln "changing player to 1 (in two player mode)")
+                    (begin (displayln "player 1's turn")
                            (change-player))
-                    (void))))))
+                    (displayln "Player 2's turn again"))))))
   
 
     (define/public (return-grid-coord x y)
